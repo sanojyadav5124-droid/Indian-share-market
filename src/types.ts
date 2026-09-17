@@ -12,7 +12,19 @@ export type Sector =
   | 'Consumer Durables'
   | 'Metals'
   | 'Power'
-  | 'Cash & Liquid';
+  | 'Telecommunication'
+  | 'Cash & Liquid'
+  | (string & {});
+
+export interface StockDirectoryItem {
+  symbol: string;
+  name: string;
+  sector: Sector;
+  marketCap: MarketCap;
+  instrumentType: InstrumentType;
+  defaultPrice: number;
+  isCustom?: boolean;
+}
 
 export type MarketCap = 'Large Cap' | 'Mid Cap' | 'Small Cap' | 'Cash';
 

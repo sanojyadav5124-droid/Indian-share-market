@@ -9,6 +9,7 @@ import { TaxEngineView } from './components/TaxEngineView';
 import { UserManualView } from './components/UserManualView';
 import { PricingManagerModal } from './components/PricingManagerModal';
 import { AddTransactionModal } from './components/AddTransactionModal';
+import { AddCustomStockModal } from './components/AddCustomStockModal';
 import { LotDetailsModal } from './components/LotDetailsModal';
 import { ShieldCheck, HardDrive, BookOpen, Layers } from 'lucide-react';
 
@@ -35,6 +36,7 @@ const MainLayout: React.FC = () => {
       {/* Global Modals */}
       <PricingManagerModal />
       <AddTransactionModal />
+      <AddCustomStockModal />
       <LotDetailsModal />
 
       {/* Footer */}

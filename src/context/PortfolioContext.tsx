@@ -7,6 +7,7 @@ import {
   PortfolioSummary,
   ProfileId,
   RealizedGainLot,
+  StockDirectoryItem,
   Transaction,
 } from '../types';
 import {
@@ -14,6 +15,7 @@ import {
   INITIAL_MARKET_PRICES,
   INITIAL_TRANSACTIONS,
 } from '../data/seedData';
+import { MASTER_STOCK_DIRECTORY } from '../data/stockDirectory';
 import { processPortfolioTransactions } from '../utils/taxAndFifoEngine';
 
 interface PortfolioContextType {
@@ -28,6 +30,8 @@ interface PortfolioContextType {
   // Data
   transactions: Transaction[];
   marketPrices: MarketPrice[];
+  allStocks: StockDirectoryItem[];
+  customStocks: StockDirectoryItem[];
   holdings: HoldingItem[];
   realizedLots: RealizedGainLot[];
   summary: PortfolioSummary;
@@ -37,6 +41,7 @@ interface PortfolioContextType {
   addTransaction: (tx: Omit<Transaction, 'id'>) => void;
   deleteTransaction: (id: string) => void;
   updateMarketPrice: (symbol: string, newCmp: number) => void;
+  addCustomStock: (stock: StockDirectoryItem) => void;
   bulkUpdatePrices: (csvText: string) => { successCount: number; errors: string[] };
   simulateMarketShift: (percent: number) => void;
   resetToDefaults: () => void;
@@ -52,6 +57,8 @@ interface PortfolioContextType {
   setIsPricingModalOpen: (open: boolean) => void;
   isAddTxModalOpen: boolean;
   setIsAddTxModalOpen: (open: boolean) => void;
+  isAddStockModalOpen: boolean;
+  setIsAddStockModalOpen: (open: boolean) => void;
   selectedHoldingForLots: HoldingItem | null;
   setSelectedHoldingForLots: (holding: HoldingItem | null) => void;
 }
@@ -85,9 +92,20 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return INITIAL_MARKET_PRICES;
   });
 
+  const [customStocks, setCustomStocks] = useState<StockDirectoryItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_custom_stocks`);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error('Failed to load custom stocks from localStorage', e);
+    }
+    return [];
+  });
+
   // Modal states
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
   const [isAddTxModalOpen, setIsAddTxModalOpen] = useState(false);
+  const [isAddStockModalOpen, setIsAddStockModalOpen] = useState(false);
   const [selectedHoldingForLots, setSelectedHoldingForLots] = useState<HoldingItem | null>(null);
 
   // Sync to localStorage
@@ -106,6 +124,46 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       console.error('Failed to persist market prices', e);
     }
   }, [marketPrices]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${STORAGE_KEY}_custom_stocks`, JSON.stringify(customStocks));
+    } catch (e) {
+      console.error('Failed to persist custom stocks', e);
+    }
+  }, [customStocks]);
+
+  // Combined Directory: Master Directory + User's Custom Stocks
+  const allStocks = useMemo(() => {
+    const stockMap = new Map<string, StockDirectoryItem>();
+    
+    // Seed with master directory
+    MASTER_STOCK_DIRECTORY.forEach((item) => {
+      stockMap.set(item.symbol.toUpperCase(), item);
+    });
+
+    // Merge custom stocks
+    customStocks.forEach((item) => {
+      stockMap.set(item.symbol.toUpperCase(), { ...item, isCustom: true });
+    });
+
+    // Also include any marketPrices not in master directory
+    marketPrices.forEach((mp) => {
+      const sym = mp.symbol.toUpperCase();
+      if (!stockMap.has(sym) && mp.instrumentType !== 'CASH') {
+        stockMap.set(sym, {
+          symbol: mp.symbol,
+          name: mp.name,
+          sector: mp.sector,
+          marketCap: mp.marketCap,
+          instrumentType: mp.instrumentType,
+          defaultPrice: mp.cmp,
+        });
+      }
+    });
+
+    return Array.from(stockMap.values());
+  }, [customStocks, marketPrices]);
 
   // Derived processed data
   const { holdings, realizedLots, summary, cashBalances } = useMemo(() => {
@@ -209,21 +267,72 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     );
   };
 
+  const addCustomStock = (stock: StockDirectoryItem) => {
+    const formattedSymbol = stock.symbol.trim().toUpperCase();
+    const formattedStock: StockDirectoryItem = {
+      ...stock,
+      symbol: formattedSymbol,
+      isCustom: true,
+    };
+
+    setCustomStocks((prev) => {
+      const filtered = prev.filter((s) => s.symbol.toUpperCase() !== formattedSymbol);
+      return [...filtered, formattedStock];
+    });
+
+    // Also register or update in marketPrices so CMP is ready
+    setMarketPrices((prev) => {
+      const existing = prev.find((p) => p.symbol.toUpperCase() === formattedSymbol);
+      if (existing) {
+        return prev.map((p) =>
+          p.symbol.toUpperCase() === formattedSymbol
+            ? {
+                ...p,
+                name: stock.name,
+                cmp: stock.defaultPrice,
+                sector: stock.sector,
+                marketCap: stock.marketCap,
+                instrumentType: stock.instrumentType,
+                lastUpdated: new Date().toISOString().replace('T', ' ').substring(0, 19),
+              }
+            : p
+        );
+      } else {
+        return [
+          ...prev,
+          {
+            symbol: formattedSymbol,
+            name: stock.name,
+            cmp: stock.defaultPrice,
+            previousClose: stock.defaultPrice,
+            lastUpdated: new Date().toISOString().replace('T', ' ').substring(0, 19),
+            sector: stock.sector,
+            marketCap: stock.marketCap,
+            instrumentType: stock.instrumentType,
+          },
+        ];
+      }
+    });
+  };
+
   const resetToDefaults = () => {
     setTransactions(INITIAL_TRANSACTIONS);
     setMarketPrices(INITIAL_MARKET_PRICES);
+    setCustomStocks([]);
     localStorage.removeItem(`${STORAGE_KEY}_tx`);
     localStorage.removeItem(`${STORAGE_KEY}_prices`);
+    localStorage.removeItem(`${STORAGE_KEY}_custom_stocks`);
   };
 
   // Export JSON
   const exportBackupJSON = () => {
     const payload = {
-      version: '1.0',
+      version: '1.1',
       exportedAt: new Date().toISOString(),
       profiles: FAMILY_PROFILES,
       transactions,
       marketPrices,
+      customStocks,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -241,6 +350,9 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (Array.isArray(data.transactions) && Array.isArray(data.marketPrices)) {
         setTransactions(data.transactions);
         setMarketPrices(data.marketPrices);
+        if (Array.isArray(data.customStocks)) {
+          setCustomStocks(data.customStocks);
+        }
         return true;
       }
       return false;
@@ -351,6 +463,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setActiveTab,
         transactions,
         marketPrices,
+        allStocks,
+        customStocks,
         holdings,
         realizedLots,
         summary,
@@ -358,6 +472,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         addTransaction,
         deleteTransaction,
         updateMarketPrice,
+        addCustomStock,
         bulkUpdatePrices,
         simulateMarketShift,
         resetToDefaults,
@@ -369,6 +484,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setIsPricingModalOpen,
         isAddTxModalOpen,
         setIsAddTxModalOpen,
+        isAddStockModalOpen,
+        setIsAddStockModalOpen,
         selectedHoldingForLots,
         setSelectedHoldingForLots,
       }}

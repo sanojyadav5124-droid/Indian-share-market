@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { usePortfolio } from '../context/PortfolioContext';
 import { formatCompactINR, formatINR, formatPercent } from '../utils/formatters';
+import { PortfolioCharts } from './PortfolioCharts';
 
 export const DashboardView: React.FC = () => {
   const {
@@ -342,6 +343,9 @@ export const DashboardView: React.FC = () => {
           </svg>
         </div>
       </div>
+
+      {/* Sector Weightage & Market Cap Allocation Visualizations */}
+      <PortfolioCharts holdings={holdings} summary={summary} />
 
       {/* Multi-Profile Family Distribution Breakdown */}
       <div className="bg-white p-5 rounded-2xl border border-zinc-200 shadow-2xs">

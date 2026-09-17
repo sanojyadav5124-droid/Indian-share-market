@@ -9,6 +9,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Search,
+  Plus,
+  Database,
 } from 'lucide-react';
 import { usePortfolio } from '../context/PortfolioContext';
 import { formatINR, formatPercent } from '../utils/formatters';
@@ -17,6 +19,7 @@ export const PricingManagerModal: React.FC = () => {
   const {
     isPricingModalOpen,
     setIsPricingModalOpen,
+    setIsAddStockModalOpen,
     marketPrices,
     updateMarketPrice,
     bulkUpdatePrices,
@@ -130,15 +133,25 @@ export const PricingManagerModal: React.FC = () => {
         <div className="p-6 overflow-y-auto flex-1">
           {activeTab === 'individual' && (
             <div className="space-y-4">
-              <div className="relative">
-                <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Filter scrip to update..."
-                  className="w-full pl-9 pr-4 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-800 placeholder-zinc-400 focus:outline-none"
-                />
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Filter scrip to update..."
+                    className="w-full pl-9 pr-4 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-800 placeholder-zinc-400 focus:outline-none"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsAddStockModalOpen(true)}
+                  className="px-3 py-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0 shadow-2xs"
+                >
+                  <Plus className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Add Security</span>
+                </button>
               </div>
 
               <div className="divide-y divide-zinc-100 border border-zinc-200 rounded-xl overflow-hidden">
