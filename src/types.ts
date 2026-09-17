@@ -23,7 +23,53 @@ export interface StockDirectoryItem {
   marketCap: MarketCap;
   instrumentType: InstrumentType;
   defaultPrice: number;
+  sebiRank?: number; // 1-100 Large, 101-250 Mid, 251+ Small
+  isin?: string;
   isCustom?: boolean;
+}
+
+export type FiscalYear = 'FY 2024-25' | 'FY 2025-26' | 'FY 2026-27';
+
+export type BenchmarkIndex = 'NIFTY 50' | 'NIFTY NEXT 50' | 'NIFTY SMALLCAP 250';
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  category: 'IPO' | 'EARNINGS' | 'POLICY' | 'BUDGET' | 'MACRO' | 'AMFI_REBALANCE' | 'HOLIDAY' | 'CUSTOM';
+  date: string; // YYYY-MM-DD
+  description?: string;
+  badgeText?: string;
+  symbol?: string;
+  relatedSymbol?: string;
+  impact?: 'HIGH' | 'MEDIUM' | 'LOW';
+  isAlertSet: boolean;
+  status?: 'UPCOMING' | 'ACTIVE' | 'PASSED';
+}
+
+export interface CASParsedHolding {
+  symbol: string;
+  name: string;
+  isin: string;
+  quantity: number;
+  avgPrice: number;
+  cmp?: number;
+  instrumentType: InstrumentType;
+  sector: Sector;
+  marketCap: MarketCap;
+}
+
+export interface BrokerParsedTrade {
+  symbol: string;
+  name: string;
+  type: TransactionType;
+  date: string;
+  quantity: number;
+  price: number;
+  charges: number;
+  notes?: string;
+  instrumentType: InstrumentType;
+  sector: Sector;
+  marketCap: MarketCap;
 }
 
 export type MarketCap = 'Large Cap' | 'Mid Cap' | 'Small Cap' | 'Cash';
@@ -169,3 +215,14 @@ export interface PortfolioSummary {
 }
 
 export type CostBasisMethod = 'WAC' | 'FIFO';
+
+export type ActiveTab = 
+  | 'dashboard' 
+  | 'holdings' 
+  | 'transactions' 
+  | 'tax' 
+  | 'reports' 
+  | 'calendar' 
+  | 'ai_copilot' 
+  | 'manual' 
+  | 'about';

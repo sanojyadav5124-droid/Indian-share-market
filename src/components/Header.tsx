@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { usePortfolio } from '../context/PortfolioContext';
 import { ProfileId } from '../types';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface HeaderProps {
   onOpenBackupModal?: () => void;
@@ -116,6 +117,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenBackupModal }) => {
 
           {/* Right Actions: Pricing Manager & Add Transaction */}
           <div className="flex items-center gap-2">
+            {/* PWA Install / Add to Home Screen Button */}
+            <PWAInstallButton variant="header" />
+
             {/* Backup / Sync Button */}
             {onOpenBackupModal && (
               <button

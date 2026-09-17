@@ -1,7 +1,11 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import {
+  ActiveTab,
+  BenchmarkIndex,
+  CalendarEvent,
   CostBasisMethod,
   FamilyProfile,
+  FiscalYear,
   HoldingItem,
   MarketPrice,
   PortfolioSummary,
@@ -17,6 +21,7 @@ import {
   INITIAL_TRANSACTIONS,
 } from '../data/seedData';
 import { MASTER_STOCK_DIRECTORY } from '../data/stockDirectory';
+import { INITIAL_CALENDAR_EVENTS } from '../data/calendarData';
 import { processPortfolioTransactions } from '../utils/taxAndFifoEngine';
 
 interface PortfolioContextType {
@@ -25,10 +30,16 @@ interface PortfolioContextType {
   profiles: FamilyProfile[];
   costBasisMethod: CostBasisMethod;
   setCostBasisMethod: (method: CostBasisMethod) => void;
-  activeTab: 'dashboard' | 'holdings' | 'transactions' | 'tax' | 'manual';
-  setActiveTab: (tab: 'dashboard' | 'holdings' | 'transactions' | 'tax' | 'manual') => void;
+  activeTab: ActiveTab;
+  setActiveTab: (tab: ActiveTab) => void;
   theme: ThemeMode;
   setTheme: (theme: ThemeMode) => void;
+
+  // Fiscal Year & Benchmark
+  selectedFY: FiscalYear;
+  setSelectedFY: (fy: FiscalYear) => void;
+  selectedBenchmark: BenchmarkIndex;
+  setSelectedBenchmark: (b: BenchmarkIndex) => void;
 
   // Data
   transactions: Transaction[];
@@ -39,15 +50,22 @@ interface PortfolioContextType {
   realizedLots: RealizedGainLot[];
   summary: PortfolioSummary;
   cashBalances: Record<ProfileId, number>;
+  calendarEvents: CalendarEvent[];
 
   // Actions
   addTransaction: (tx: Omit<Transaction, 'id'>) => void;
+  bulkAddTransactions: (txs: Omit<Transaction, 'id'>[]) => number;
   deleteTransaction: (id: string) => void;
   updateMarketPrice: (symbol: string, newCmp: number) => void;
   addCustomStock: (stock: StockDirectoryItem) => void;
   bulkUpdatePrices: (csvText: string) => { successCount: number; errors: string[] };
   simulateMarketShift: (percent: number) => void;
   resetToDefaults: () => void;
+
+  // Calendar Actions
+  addCalendarEvent: (ev: Omit<CalendarEvent, 'id'>) => void;
+  toggleCalendarAlert: (id: string) => void;
+  deleteCalendarEvent: (id: string) => void;
 
   // Family Profile Actions
   addProfile: (profile: Omit<FamilyProfile, 'id'>) => FamilyProfile;
@@ -70,6 +88,8 @@ interface PortfolioContextType {
   setIsAddStockModalOpen: (open: boolean) => void;
   isFamilyModalOpen: boolean;
   setIsFamilyModalOpen: (open: boolean) => void;
+  isBackupModalOpen: boolean;
+  setIsBackupModalOpen: (open: boolean) => void;
   selectedHoldingForLots: HoldingItem | null;
   setSelectedHoldingForLots: (holding: HoldingItem | null) => void;
 }
@@ -81,7 +101,9 @@ const PortfolioContext = createContext<PortfolioContextType | null>(null);
 export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeProfile, setActiveProfile] = useState<ProfileId | 'consolidated'>('consolidated');
   const [costBasisMethod, setCostBasisMethod] = useState<CostBasisMethod>('WAC');
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'holdings' | 'transactions' | 'tax' | 'manual'>('dashboard');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
+  const [selectedFY, setSelectedFY] = useState<FiscalYear>('FY 2025-26');
+  const [selectedBenchmark, setSelectedBenchmark] = useState<BenchmarkIndex>('NIFTY 50');
 
   const [profiles, setProfiles] = useState<FamilyProfile[]>(() => {
     try {
@@ -107,6 +129,27 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
     return 'slate';
   });
+
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_calendar_events`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error('Failed to load calendar events', e);
+    }
+    return INITIAL_CALENDAR_EVENTS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${STORAGE_KEY}_calendar_events`, JSON.stringify(calendarEvents));
+    } catch (e) {
+      console.error('Failed to persist calendar events', e);
+    }
+  }, [calendarEvents]);
 
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     try {
@@ -143,6 +186,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isAddTxModalOpen, setIsAddTxModalOpen] = useState(false);
   const [isAddStockModalOpen, setIsAddStockModalOpen] = useState(false);
   const [isFamilyModalOpen, setIsFamilyModalOpen] = useState(false);
+  const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
   const [selectedHoldingForLots, setSelectedHoldingForLots] = useState<HoldingItem | null>(null);
 
   // Sync to localStorage
@@ -255,6 +299,59 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       id: `tx-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
     };
     setTransactions((prev) => [newTx, ...prev]);
+  };
+
+  const bulkAddTransactions = (txsData: Omit<Transaction, 'id'>[]): number => {
+    if (!txsData || txsData.length === 0) return 0;
+    const newTxs: Transaction[] = txsData.map((t, idx) => ({
+      ...t,
+      id: `tx-${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 6)}`,
+    }));
+    setTransactions((prev) => [...newTxs, ...prev]);
+
+    // Also auto-register any missing market price entries
+    setMarketPrices((prevPrices) => {
+      const existingSymbols = new Set(prevPrices.map((p) => p.symbol.toUpperCase()));
+      const addedPrices: MarketPrice[] = [];
+      newTxs.forEach((tx) => {
+        const sym = tx.symbol.toUpperCase();
+        if (!existingSymbols.has(sym) && tx.instrumentType !== 'CASH') {
+          existingSymbols.add(sym);
+          addedPrices.push({
+            symbol: tx.symbol,
+            name: tx.name,
+            cmp: tx.price > 0 ? tx.price : 100,
+            previousClose: tx.price > 0 ? tx.price : 100,
+            lastUpdated: new Date().toISOString().replace('T', ' ').substring(0, 19),
+            sector: tx.sector || 'Financial Services',
+            marketCap: tx.marketCap || 'Large Cap',
+            instrumentType: tx.instrumentType || 'EQUITY',
+          });
+        }
+      });
+      return addedPrices.length > 0 ? [...prevPrices, ...addedPrices] : prevPrices;
+    });
+
+    return newTxs.length;
+  };
+
+  // Calendar event actions
+  const addCalendarEvent = (ev: Omit<CalendarEvent, 'id'>) => {
+    const newEv: CalendarEvent = {
+      ...ev,
+      id: `cal-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+    };
+    setCalendarEvents((prev) => [newEv, ...prev]);
+  };
+
+  const toggleCalendarAlert = (id: string) => {
+    setCalendarEvents((prev) =>
+      prev.map((ev) => (ev.id === id ? { ...ev, isAlertSet: !ev.isAlertSet } : ev))
+    );
+  };
+
+  const deleteCalendarEvent = (id: string) => {
+    setCalendarEvents((prev) => prev.filter((ev) => ev.id !== id));
   };
 
   const deleteTransaction = (id: string) => {
@@ -610,6 +707,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setActiveTab,
         theme,
         setTheme,
+        selectedFY,
+        setSelectedFY,
+        selectedBenchmark,
+        setSelectedBenchmark,
         transactions,
         marketPrices,
         allStocks,
@@ -618,13 +719,18 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         realizedLots,
         summary,
         cashBalances,
+        calendarEvents,
         addTransaction,
+        bulkAddTransactions,
         deleteTransaction,
         updateMarketPrice,
         addCustomStock,
         bulkUpdatePrices,
         simulateMarketShift,
         resetToDefaults,
+        addCalendarEvent,
+        toggleCalendarAlert,
+        deleteCalendarEvent,
         addProfile,
         deleteProfile,
         updateProfile,
@@ -641,6 +747,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setIsAddStockModalOpen,
         isFamilyModalOpen,
         setIsFamilyModalOpen,
+        isBackupModalOpen,
+        setIsBackupModalOpen,
         selectedHoldingForLots,
         setSelectedHoldingForLots,
       }}

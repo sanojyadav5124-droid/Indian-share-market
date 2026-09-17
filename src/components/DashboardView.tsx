@@ -21,6 +21,7 @@ import { usePortfolio } from '../context/PortfolioContext';
 import { formatCompactINR, formatINR, formatPercent } from '../utils/formatters';
 import { PortfolioCharts } from './PortfolioCharts';
 import { GreetingBanner } from './GreetingBanner';
+import { CalendarWidget } from './CalendarWidget';
 
 interface DashboardViewProps {
   onOpenBackupModal?: () => void;
@@ -159,6 +160,48 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenBackupModal 
           >
             <Database className="w-3.5 h-3.5 text-emerald-400" />
             <span>Backup & Sync</span>
+          </button>
+        </div>
+      </div>
+
+      {/* AI Co-Pilot Quick Launcher */}
+      <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 rounded-2xl p-4 sm:p-5 border border-indigo-800/40 shadow-sm text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center flex-shrink-0 text-indigo-300">
+            <Sparkles className="w-5 h-5 text-indigo-400" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-indigo-300 uppercase tracking-wide">
+                Gemini 3.8 Flash AI Assistant
+              </span>
+              <span className="text-[10px] bg-indigo-500/20 text-indigo-200 px-2 py-0.5 rounded-full border border-indigo-400/30">
+                100% Zero-Regex
+              </span>
+            </div>
+            <h2 className="text-base font-bold text-white mt-0.5">
+              AI-Driven CAS & Trade Ingestion, Concentration Audit & Tax Harvester
+            </h2>
+            <p className="text-xs text-slate-300 mt-0.5 max-w-2xl">
+              Drop NSDL/CDSL monthly statements or broker tradebooks to sync master ledger, audit direct stock vs mutual fund overlap, and harvest tax losses before March 31st.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto flex-shrink-0">
+          <button
+            onClick={() => setActiveTab('ai_copilot')}
+            className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Open AI Co-Pilot</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('calendar')}
+            className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-slate-200 border border-white/15 font-semibold text-xs transition-all flex items-center gap-1.5"
+          >
+            <Calendar className="w-3.5 h-3.5" />
+            <span>Market Calendar</span>
           </button>
         </div>
       </div>
@@ -457,8 +500,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenBackupModal 
         </div>
       </div>
 
-      {/* Top Gainers & Allocations Side-by-Side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Top Gainers, Corporate Actions, and Market Catalyst Calendar */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Top Gainers */}
         <div className="bg-white p-5 rounded-2xl border border-zinc-200 shadow-2xs">
           <div className="flex items-center justify-between mb-3">
@@ -470,7 +513,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenBackupModal 
               onClick={() => setActiveTab('holdings')}
               className="text-xs text-indigo-600 hover:text-indigo-700 font-medium"
             >
-              View all holdings &rarr;
+              View all &rarr;
             </button>
           </div>
 
@@ -527,7 +570,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenBackupModal 
               onClick={() => setActiveTab('transactions')}
               className="text-xs text-indigo-600 hover:text-indigo-700 font-medium"
             >
-              Ledger history &rarr;
+              Ledger &rarr;
             </button>
           </div>
 
@@ -570,6 +613,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenBackupModal 
             )}
           </div>
         </div>
+
+        {/* Dalal Street Catalyst Calendar Widget */}
+        <CalendarWidget />
       </div>
 
       {/* Sovereign Backup & Cross-Device Sync Quick Card */}

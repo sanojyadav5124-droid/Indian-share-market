@@ -7,6 +7,8 @@ import { HoldingsAnalyticsView } from './components/HoldingsAnalyticsView';
 import { TransactionLedgerView } from './components/TransactionLedgerView';
 import { TaxEngineView } from './components/TaxEngineView';
 import { UserManualView } from './components/UserManualView';
+import { AICoPilotView } from './components/AICoPilotView';
+import { CalendarView } from './components/CalendarView';
 import { PricingManagerModal } from './components/PricingManagerModal';
 import { AddTransactionModal } from './components/AddTransactionModal';
 import { AddCustomStockModal } from './components/AddCustomStockModal';
@@ -32,6 +34,8 @@ const MainLayout: React.FC = () => {
         {activeTab === 'dashboard' && (
           <DashboardView onOpenBackupModal={() => setIsBackupModalOpen(true)} />
         )}
+        {activeTab === 'ai_copilot' && <AICoPilotView />}
+        {activeTab === 'calendar' && <CalendarView />}
         {activeTab === 'holdings' && <HoldingsAnalyticsView />}
         {activeTab === 'transactions' && <TransactionLedgerView />}
         {activeTab === 'tax' && <TaxEngineView />}

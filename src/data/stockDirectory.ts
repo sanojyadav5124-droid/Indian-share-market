@@ -617,3 +617,161 @@ export const MASTER_STOCK_DIRECTORY: StockDirectoryItem[] = [
     defaultPrice: 138.40,
   },
 ];
+
+// Official SEBI/AMFI Market Cap Classification Framework
+// Ref: SEBI Circular SEBI/HO/IMD/DF3/CIR/P/2017/114
+export const SEBI_MARKET_CAP_RULES = {
+  largeCap: {
+    name: 'Large Cap',
+    rankRange: '1st - 100th Company in Market Cap',
+    description: 'Top 100 companies by full market capitalization listed on NSE/BSE.',
+    color: '#2563EB', // Blue
+  },
+  midCap: {
+    name: 'Mid Cap',
+    rankRange: '101st - 250th Company in Market Cap',
+    description: 'Companies ranked from 101 to 250 by full market capitalization.',
+    color: '#16A34A', // Green
+  },
+  smallCap: {
+    name: 'Small Cap',
+    rankRange: '251st Company Onwards',
+    description: 'All companies ranked from 251 onwards in market capitalization.',
+    color: '#EA580C', // Orange
+  },
+};
+
+// Indian Benchmark Indices Data for True Alpha calculation
+export interface BenchmarkData {
+  name: string;
+  symbol: string;
+  currentValue: number;
+  oneYearReturnPct: number;
+  threeYearCagrPct: number;
+  fiveYearCagrPct: number;
+  historicalTrajectory: { month: string; value: number; changePct: number }[];
+}
+
+export const INDIAN_BENCHMARKS: Record<string, BenchmarkData> = {
+  'NIFTY 50': {
+    name: 'NIFTY 50 Index',
+    symbol: 'NIFTY 50',
+    currentValue: 24852.15,
+    oneYearReturnPct: 19.45,
+    threeYearCagrPct: 15.82,
+    fiveYearCagrPct: 16.90,
+    historicalTrajectory: [
+      { month: 'Apr 24', value: 22475, changePct: 0.0 },
+      { month: 'Jun 24', value: 23567, changePct: 4.8 },
+      { month: 'Aug 24', value: 24520, changePct: 9.1 },
+      { month: 'Oct 24', value: 24180, changePct: 7.6 },
+      { month: 'Dec 24', value: 24350, changePct: 8.3 },
+      { month: 'Feb 25', value: 24680, changePct: 9.8 },
+      { month: 'Apr 25', value: 24852, changePct: 10.6 },
+    ],
+  },
+  'NIFTY NEXT 50': {
+    name: 'NIFTY Next 50 (Junior Nifty)',
+    symbol: 'NIFTY NEXT 50',
+    currentValue: 69420.30,
+    oneYearReturnPct: 28.60,
+    threeYearCagrPct: 20.15,
+    fiveYearCagrPct: 18.75,
+    historicalTrajectory: [
+      { month: 'Apr 24', value: 54100, changePct: 0.0 },
+      { month: 'Jun 24', value: 61200, changePct: 13.1 },
+      { month: 'Aug 24', value: 66400, changePct: 22.7 },
+      { month: 'Oct 24', value: 67100, changePct: 24.0 },
+      { month: 'Dec 24', value: 68500, changePct: 26.6 },
+      { month: 'Feb 25', value: 69100, changePct: 27.7 },
+      { month: 'Apr 25', value: 69420, changePct: 28.3 },
+    ],
+  },
+  'NIFTY SMALLCAP 250': {
+    name: 'NIFTY Smallcap 250 Index',
+    symbol: 'NIFTY SMALLCAP 250',
+    currentValue: 18125.80,
+    oneYearReturnPct: 35.40,
+    threeYearCagrPct: 25.80,
+    fiveYearCagrPct: 22.90,
+    historicalTrajectory: [
+      { month: 'Apr 24', value: 13380, changePct: 0.0 },
+      { month: 'Jun 24', value: 15400, changePct: 15.1 },
+      { month: 'Aug 24', value: 17100, changePct: 27.8 },
+      { month: 'Oct 24', value: 16950, changePct: 26.7 },
+      { month: 'Dec 24', value: 17620, changePct: 31.7 },
+      { month: 'Feb 25', value: 17950, changePct: 34.1 },
+      { month: 'Apr 25', value: 18125, changePct: 35.4 },
+    ],
+  },
+};
+
+// Underlying Top Holdings for Leading Indian Mutual Funds (For "Over-Overlap" Audit)
+export interface MutualFundPortfolio {
+  fundSymbol: string;
+  fundName: string;
+  aumCrores: number;
+  topHoldings: { symbol: string; name: string; weightPct: number }[];
+}
+
+export const LEADING_MUTUAL_FUNDS_HOLDINGS: MutualFundPortfolio[] = [
+  {
+    fundSymbol: 'PPFAS_FLEXI',
+    fundName: 'Parag Parikh Flexi Cap Fund',
+    aumCrores: 68500,
+    topHoldings: [
+      { symbol: 'HDFCBANK', name: 'HDFC Bank Ltd', weightPct: 8.4 },
+      { symbol: 'ITC', name: 'ITC Ltd', weightPct: 6.8 },
+      { symbol: 'BAJAJ-AUTO', name: 'Bajaj Auto Ltd', weightPct: 6.2 },
+      { symbol: 'ICICIBANK', name: 'ICICI Bank Ltd', weightPct: 5.9 },
+      { symbol: 'POWERGRID', name: 'Power Grid Corp', weightPct: 4.8 },
+      { symbol: 'HCLTECH', name: 'HCL Technologies Ltd', weightPct: 4.4 },
+      { symbol: 'COALINDIA', name: 'Coal India Ltd', weightPct: 3.9 },
+      { symbol: 'TCS', name: 'Tata Consultancy Services', weightPct: 3.5 },
+    ],
+  },
+  {
+    fundSymbol: 'HDFC_TOP100',
+    fundName: 'HDFC Top 100 Fund',
+    aumCrores: 34200,
+    topHoldings: [
+      { symbol: 'HDFCBANK', name: 'HDFC Bank Ltd', weightPct: 10.2 },
+      { symbol: 'ICICIBANK', name: 'ICICI Bank Ltd', weightPct: 9.3 },
+      { symbol: 'RELIANCE', name: 'Reliance Industries Ltd', weightPct: 8.9 },
+      { symbol: 'INFOSYS', name: 'Infosys Ltd', weightPct: 6.8 },
+      { symbol: 'LT', name: 'Larsen & Toubro Ltd', weightPct: 5.5 },
+      { symbol: 'TCS', name: 'Tata Consultancy Services', weightPct: 4.7 },
+      { symbol: 'BHARTIARTL', name: 'Bharti Airtel Ltd', weightPct: 4.1 },
+      { symbol: 'AXISBANK', name: 'Axis Bank Ltd', weightPct: 3.9 },
+    ],
+  },
+  {
+    fundSymbol: 'MIRAE_LARGECAP',
+    fundName: 'Mirae Asset Large Cap Fund',
+    aumCrores: 37800,
+    topHoldings: [
+      { symbol: 'HDFCBANK', name: 'HDFC Bank Ltd', weightPct: 9.6 },
+      { symbol: 'ICICIBANK', name: 'ICICI Bank Ltd', weightPct: 8.8 },
+      { symbol: 'RELIANCE', name: 'Reliance Industries Ltd', weightPct: 8.1 },
+      { symbol: 'INFOSYS', name: 'Infosys Ltd', weightPct: 6.4 },
+      { symbol: 'TCS', name: 'Tata Consultancy Services', weightPct: 4.9 },
+      { symbol: 'SBIN', name: 'State Bank of India', weightPct: 4.3 },
+      { symbol: 'AXISBANK', name: 'Axis Bank Ltd', weightPct: 3.8 },
+      { symbol: 'TATAMOTORS', name: 'Tata Motors Ltd', weightPct: 3.5 },
+    ],
+  },
+  {
+    fundSymbol: 'NIPPON_SMALLCAP',
+    fundName: 'Nippon India Small Cap Fund',
+    aumCrores: 52100,
+    topHoldings: [
+      { symbol: 'TUBEINVEST', name: 'Tube Investments of India', weightPct: 3.8 },
+      { symbol: 'APARINDS', name: 'Apar Industries Ltd', weightPct: 3.2 },
+      { symbol: 'KARURVYSYA', name: 'Karur Vysya Bank Ltd', weightPct: 2.9 },
+      { symbol: 'MULTICOM', name: 'Multi Commodity Exchange (MCX)', weightPct: 2.7 },
+      { symbol: 'CDSL', name: 'Central Depository Services (CDSL)', weightPct: 2.4 },
+      { symbol: 'KPITTECH', name: 'KPIT Technologies Ltd', weightPct: 2.2 },
+    ],
+  },
+];
+

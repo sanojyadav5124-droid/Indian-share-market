@@ -11,9 +11,10 @@ import {
   YAxis,
   CartesianGrid,
 } from 'recharts';
-import { PieChart as PieIcon, BarChart3, Layers, ShieldAlert, Sparkles, TrendingUp } from 'lucide-react';
-import { HoldingItem, MarketCap, PortfolioSummary, Sector } from '../types';
+import { PieChart as PieIcon, BarChart3, Layers, ShieldAlert, Sparkles, TrendingUp, Award, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { HoldingItem, MarketCap, PortfolioSummary, Sector, BenchmarkIndex } from '../types';
 import { formatCompactINR, formatINR, formatPercent } from '../utils/formatters';
+import { usePortfolio } from '../context/PortfolioContext';
 
 interface PortfolioChartsProps {
   holdings: HoldingItem[];
@@ -58,8 +59,21 @@ const FALLBACK_COLORS = [
 ];
 
 export const PortfolioCharts: React.FC<PortfolioChartsProps> = ({ holdings, summary }) => {
+  const { selectedBenchmark, setSelectedBenchmark, selectedFY, setSelectedFY, costBasisMethod } = usePortfolio();
   const [activeChartTab, setActiveChartTab] = useState<'both' | 'sector' | 'marketcap'>('both');
   const [chartType, setChartType] = useState<'donut' | 'bar'>('donut');
+
+  const BENCHMARKS: Record<BenchmarkIndex, { returnPct: number; desc: string }> = {
+    'NIFTY 50': { returnPct: 14.8, desc: 'India Top 50 Large-Cap Scrips (AMFI Rank 1-50)' },
+    'NIFTY NEXT 50': { returnPct: 19.4, desc: 'Next 50 Emerging Bluechips (AMFI Rank 51-100)' },
+    'NIFTY SMALLCAP 250': { returnPct: 23.5, desc: 'High-Alpha Smallcaps (AMFI Rank 251-500)' },
+  };
+
+  const portfolioReturn = costBasisMethod === 'WAC' 
+    ? summary.totalUnrealizedPnLPercentWAC 
+    : summary.totalUnrealizedPnLPercentFIFO;
+  const benchmarkReturn = BENCHMARKS[selectedBenchmark]?.returnPct ?? 14.8;
+  const alpha = portfolioReturn - benchmarkReturn;
 
   // Total portfolio valuation including cash
   const totalNetWorth = summary.totalNetWorth || 1;
@@ -456,6 +470,93 @@ export const PortfolioCharts: React.FC<PortfolioChartsProps> = ({ holdings, summ
             </div>
           </div>
         )}
+      </div>
+
+      {/* SEBI Market-Cap Framework & AMFI Index Alpha Benchmarking */}
+      <div className="mt-4 pt-4 border-t border-zinc-200 bg-zinc-50/80 -mx-5 -mb-5 p-5 rounded-b-2xl">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-zinc-900 text-white flex items-center justify-center">
+              <Award className="w-4 h-4 text-amber-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-zinc-900">
+                  SEBI Market-Cap & AMFI Index Benchmarking
+                </span>
+                <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-mono font-medium">
+                  {selectedFY}
+                </span>
+              </div>
+              <p className="text-[11px] text-zinc-500">
+                Official semi-annual categorization (Large: 1-100, Mid: 101-250, Small: 251+) vs Market Beta
+              </p>
+            </div>
+          </div>
+
+          {/* Benchmark Selector Buttons */}
+          <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-zinc-200 self-start sm:self-auto shadow-2xs">
+            {(['NIFTY 50', 'NIFTY NEXT 50', 'NIFTY SMALLCAP 250'] as BenchmarkIndex[]).map((bm) => (
+              <button
+                key={bm}
+                id={`benchmark-pill-${bm.replace(/\s+/g, '-').toLowerCase()}`}
+                onClick={() => setSelectedBenchmark(bm)}
+                className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg transition-all ${
+                  selectedBenchmark === bm
+                    ? 'bg-zinc-900 text-white shadow-xs'
+                    : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
+                }`}
+              >
+                {bm}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Alpha Comparison Metrics */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Portfolio Return */}
+          <div className="bg-white p-3 rounded-xl border border-zinc-200">
+            <span className="text-[11px] text-zinc-500 font-medium block">
+              Portfolio Return ({costBasisMethod})
+            </span>
+            <div className={`text-lg font-bold font-mono mt-1 ${portfolioReturn >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+              {formatPercent(portfolioReturn)}
+            </div>
+            <span className="text-[10px] text-zinc-400">All-time unrealized gains</span>
+          </div>
+
+          {/* Benchmark Return */}
+          <div className="bg-white p-3 rounded-xl border border-zinc-200">
+            <span className="text-[11px] text-zinc-500 font-medium block">
+              {selectedBenchmark} Reference
+            </span>
+            <div className="text-lg font-bold font-mono mt-1 text-zinc-800">
+              {formatPercent(benchmarkReturn)}
+            </div>
+            <span className="text-[10px] text-zinc-400 truncate block">
+              {BENCHMARKS[selectedBenchmark].desc}
+            </span>
+          </div>
+
+          {/* Alpha Metric */}
+          <div className={`p-3 rounded-xl border ${alpha >= 0 ? 'bg-emerald-50/70 border-emerald-200' : 'bg-rose-50/70 border-rose-200'}`}>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold text-zinc-700">Excess Alpha vs Index</span>
+              {alpha >= 0 ? (
+                <ArrowUpRight className="w-4 h-4 text-emerald-600" />
+              ) : (
+                <ArrowDownRight className="w-4 h-4 text-rose-600" />
+              )}
+            </div>
+            <div className={`text-lg font-bold font-mono mt-1 ${alpha >= 0 ? 'text-emerald-800' : 'text-rose-800'}`}>
+              {alpha >= 0 ? `+${alpha.toFixed(2)}%` : `${alpha.toFixed(2)}%`}
+            </div>
+            <span className="text-[10px] text-zinc-600">
+              {alpha >= 0 ? 'Alpha Generation Achieved' : 'Trailing Benchmark'}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
