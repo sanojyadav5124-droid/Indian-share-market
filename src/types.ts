@@ -28,16 +28,19 @@ export interface StockDirectoryItem {
 
 export type MarketCap = 'Large Cap' | 'Mid Cap' | 'Small Cap' | 'Cash';
 
-export type ProfileId = 'self' | 'spouse' | 'parent';
+export type ProfileId = string;
 
 export interface FamilyProfile {
   id: ProfileId;
   name: string;
   relation: string;
-  pan: string; // Masked e.g. ABCPS****D
+  pan: string; // e.g. ABCPS****D
   broker: string;
   avatarColor: string;
+  dematAccountNo?: string;
 }
+
+export type ThemeMode = 'slate' | 'emerald' | 'navy' | 'midnight';
 
 export type TransactionType = 
   | 'BUY' 

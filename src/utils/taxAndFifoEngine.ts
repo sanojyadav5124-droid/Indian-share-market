@@ -33,11 +33,7 @@ export function processPortfolioTransactions(
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime() || a.id.localeCompare(b.id));
 
   // Cash Ledger per profile
-  const cashBalances: Record<ProfileId, number> = {
-    self: 0,
-    spouse: 0,
-    parent: 0,
-  };
+  const cashBalances: Record<ProfileId, number> = {};
 
   // Open FIFO lots grouped by profile + symbol
   // Key: `${profileId}:${symbol}`
@@ -52,6 +48,9 @@ export function processPortfolioTransactions(
 
   // Process transactions chronologically
   for (const tx of relevantTransactions) {
+    if (cashBalances[tx.profileId] === undefined) {
+      cashBalances[tx.profileId] = 0;
+    }
     const key = `${tx.profileId}:${tx.symbol}`;
     if (!openLotsMap[key]) openLotsMap[key] = [];
     if (!wacMap[key]) wacMap[key] = { qty: 0, totalCost: 0 };
@@ -385,8 +384,8 @@ export function processPortfolioTransactions(
   // Uninvested cash for selected profile view
   const uninvestedCash =
     activeProfile === 'consolidated'
-      ? cashBalances.self + cashBalances.spouse + cashBalances.parent
-      : cashBalances[activeProfile];
+      ? Object.values(cashBalances).reduce((acc, val) => acc + (val || 0), 0)
+      : (cashBalances[activeProfile] || 0);
 
   // Portfolio Totals
   const totalInvestedWAC = holdings.reduce((acc, h) => acc + h.investedValueWAC, 0);

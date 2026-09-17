@@ -46,11 +46,113 @@ export const UserManualView: React.FC = () => {
                 <li>Clearing your browser's cookies, site data, or cache will permanently delete your stored records.</li>
                 <li>Using browser Private / Incognito browsing mode prevents data from persisting across sessions.</li>
                 <li>
-                  <strong>Mandatory practice:</strong> Regularly use the <strong>"Export Backup (JSON)"</strong> button on the top right or within the Tax Engine tab to save a physical copy to your local machine.
+                  <strong>Mandatory practice:</strong> Regularly use the <strong>"Backup / Sync"</strong> button to download a JSON snapshot to your local computer, phone, or private cloud storage.
                 </li>
               </ul>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* NEW CHAPTER: Foundation Architecture & How Sync Works */}
+      <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-2xs space-y-5">
+        <div className="flex items-center gap-2 text-zinc-900">
+          <HelpCircle className="w-5 h-5 text-emerald-600" />
+          <h2 className="text-base font-bold tracking-tight">
+            Foundation Operations: Local Storage, PWA Offline & How Sync Works
+          </h2>
+        </div>
+
+        <p className="text-xs text-zinc-600 leading-relaxed">
+          SKYadav portfolio App is engineered as a <strong>100% sovereign, local-first progressive web application</strong>. Unlike traditional fintech portals that store your sensitive trade logs and PAN records on third-party remote databases, here all financial computation, tax audits, and data persistence remain exclusively on your local hardware.
+        </p>
+
+        {/* 3 Pillars Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2">
+            <div className="font-bold text-zinc-900 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs">1</span>
+              <span>Local-First Persistence</span>
+            </div>
+            <p className="text-zinc-600 leading-relaxed text-[11px]">
+              Every trade logged, price updated, or family member registered is immediately written synchronously to your browser's HTML5 <code className="bg-zinc-200/80 px-1 py-0.2 rounded font-mono">localStorage</code>. Closing the browser tab, shutting down your device, or restarting your computer preserves your data completely.
+            </p>
+          </div>
+
+          <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2">
+            <div className="font-bold text-zinc-900 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-800 flex items-center justify-center text-xs">2</span>
+              <span>Multi-Tab Real-Time Sync</span>
+            </div>
+            <p className="text-zinc-600 leading-relaxed text-[11px]">
+              If you open this portfolio across multiple browser tabs or windows simultaneously, the app uses background <code className="bg-zinc-200/80 px-1 py-0.2 rounded font-mono">storage</code> events. Logging a new order or adjusting a price in Tab 1 broadcasts instantly to Tab 2 and Tab 3 without requiring a page refresh.
+            </p>
+          </div>
+
+          <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2">
+            <div className="font-bold text-zinc-900 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center text-xs">3</span>
+              <span>Device-to-Device Sync</span>
+            </div>
+            <p className="text-zinc-600 leading-relaxed text-[11px]">
+              Because no remote servers hold your unencrypted financial data, moving your portfolio between your laptop, office PC, and mobile phone is executed via <strong>Portable JSON Backups</strong>. Export from Device A, store in your private Google Drive or USB, and click "Import Backup" on Device B.
+            </p>
+          </div>
+        </div>
+
+        {/* Step-by-Step Sync Guide */}
+        <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200 space-y-3 text-xs">
+          <span className="font-bold text-zinc-900 block">How to Sync Across Multiple Devices:</span>
+          <div className="space-y-2 text-zinc-600">
+            <div className="flex items-start gap-2">
+              <span className="w-5 h-5 rounded bg-zinc-200 text-zinc-800 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">A</span>
+              <p>On your primary device, click <strong>"Backup / Sync" &rarr; "Download Backup (.json)"</strong>. This downloads an atomic snapshot containing all trades, family members, custom tickers, and market prices.</p>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="w-5 h-5 rounded bg-zinc-200 text-zinc-800 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">B</span>
+              <p>Save or send this file to your personal cloud storage (Google Drive, iCloud, OneDrive) or email.</p>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="w-5 h-5 rounded bg-zinc-200 text-zinc-800 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">C</span>
+              <p>Open the app on your phone, tablet, or secondary PC. Click <strong>"Backup / Sync" &rarr; "Choose or Drop JSON File"</strong> and select your saved backup. All records restore in 1 second.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* PWA / Add to Screen Section */}
+        <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200 space-y-2 text-xs">
+          <div className="flex items-center gap-2 font-bold text-emerald-900">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span>Progressive Web App (PWA): True Offline Installation</span>
+          </div>
+          <p className="text-emerald-800 leading-relaxed text-[11px]">
+            This app is equipped with a Service Worker and Web App Manifest. You can install it natively on your computer or smartphone:
+          </p>
+          <ul className="list-disc pl-5 space-y-1 text-emerald-800 text-[11px]">
+            <li><strong>Desktop (Chrome/Edge):</strong> Click the <strong>"Install App"</strong> button in the banner or the install icon in the browser address bar.</li>
+            <li><strong>iOS (Safari):</strong> Tap the <strong>Share</strong> button at the bottom of Safari &rarr; select <strong>"Add to Home Screen"</strong>.</li>
+            <li><strong>Android (Chrome):</strong> Tap the <strong>"Add to Screen"</strong> button or Chrome menu &rarr; <strong>"Install app"</strong>.</li>
+          </ul>
+          <p className="text-emerald-700 text-[11px] font-medium pt-1">
+            Once installed, the app works 100% offline without any internet connection. You can open it on flights, train journeys, or remote locations with zero network bars.
+          </p>
+        </div>
+
+        {/* Family Member Operations Section */}
+        <div className="p-4 rounded-xl bg-indigo-50/60 border border-indigo-200 space-y-2 text-xs">
+          <div className="flex items-center gap-2 font-bold text-indigo-900">
+            <Layers className="w-4 h-4 text-indigo-600" />
+            <span>Adding, Managing & Deleting Family Members</span>
+          </div>
+          <p className="text-indigo-800 leading-relaxed text-[11px]">
+            Indian wealth is frequently managed at the family or Hindu Undivided Family (HUF) level while maintaining individual PAN separation for tax return filings:
+          </p>
+          <ul className="list-disc pl-5 space-y-1 text-indigo-800 text-[11px]">
+            <li>Click <strong>"Family"</strong> in the top header or banner to open the Family Profile Manager.</li>
+            <li>Click <strong>"Add Family Member"</strong> to register a spouse, child, parent, sibling, or HUF account with their dedicated PAN, broker, and demat account number.</li>
+            <li>To delete a member, click the trash icon next to their profile. A confirmation modal will warn you if transactions are assigned to that profile before removing.</li>
+            <li>Switch between individual family members via the header selector to view their isolated tax reports, or click <strong>"Consolidated View"</strong> to inspect combined net worth.</li>
+          </ul>
         </div>
       </div>
 

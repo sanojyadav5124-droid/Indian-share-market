@@ -1,5 +1,5 @@
 {
-  "name": "Indian Share Market Holding Dashboard",
+  "name": "SKYadav portfolio App",
   "description": "A 100% self-contained, local-first Indian portfolio management platform with FIFO tax engine (STCG & LTCG), WAC inventory tracking, multi-profile family consolidation, and offline pricing manager.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

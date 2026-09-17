@@ -3,27 +3,30 @@ import { FamilyProfile, MarketPrice, Transaction } from '../types';
 export const FAMILY_PROFILES: FamilyProfile[] = [
   {
     id: 'self',
-    name: 'Arjun Sharma',
+    name: 'S. K. Yadav',
     relation: 'Self',
     pan: 'ABCPS8821D',
     broker: 'Zerodha Kite',
     avatarColor: 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30',
+    dematAccountNo: '1208160012345678',
   },
   {
     id: 'spouse',
-    name: 'Pooja Sharma',
+    name: 'Pooja Yadav',
     relation: 'Spouse',
     pan: 'BXYPS4412M',
     broker: 'Groww',
     avatarColor: 'bg-indigo-500/15 text-indigo-700 border-indigo-500/30',
+    dematAccountNo: '1208160087654321',
   },
   {
     id: 'parent',
-    name: 'Ramesh Sharma',
-    relation: 'Parent (Father)',
+    name: 'R. P. Yadav',
+    relation: 'Parent',
     pan: 'APZPR9910K',
-    broker: 'Kuvera / HDFC Sec',
+    broker: 'HDFC Securities',
     avatarColor: 'bg-amber-500/15 text-amber-700 border-amber-500/30',
+    dematAccountNo: '1208160055443322',
   },
 ];
 

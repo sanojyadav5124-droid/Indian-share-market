@@ -8,6 +8,7 @@ import {
   ProfileId,
   RealizedGainLot,
   StockDirectoryItem,
+  ThemeMode,
   Transaction,
 } from '../types';
 import {
@@ -26,6 +27,8 @@ interface PortfolioContextType {
   setCostBasisMethod: (method: CostBasisMethod) => void;
   activeTab: 'dashboard' | 'holdings' | 'transactions' | 'tax' | 'manual';
   setActiveTab: (tab: 'dashboard' | 'holdings' | 'transactions' | 'tax' | 'manual') => void;
+  theme: ThemeMode;
+  setTheme: (theme: ThemeMode) => void;
 
   // Data
   transactions: Transaction[];
@@ -46,9 +49,15 @@ interface PortfolioContextType {
   simulateMarketShift: (percent: number) => void;
   resetToDefaults: () => void;
 
+  // Family Profile Actions
+  addProfile: (profile: Omit<FamilyProfile, 'id'>) => FamilyProfile;
+  deleteProfile: (id: ProfileId) => { success: boolean; message?: string };
+  updateProfile: (profile: FamilyProfile) => void;
+
   // Import/Export
   exportBackupJSON: () => void;
   importBackupJSON: (jsonString: string) => boolean;
+  importBackupFromFile: (file: File) => Promise<{ success: boolean; message: string }>;
   exportHoldingsCSV: () => void;
   exportTaxCSV: () => void;
 
@@ -59,6 +68,8 @@ interface PortfolioContextType {
   setIsAddTxModalOpen: (open: boolean) => void;
   isAddStockModalOpen: boolean;
   setIsAddStockModalOpen: (open: boolean) => void;
+  isFamilyModalOpen: boolean;
+  setIsFamilyModalOpen: (open: boolean) => void;
   selectedHoldingForLots: HoldingItem | null;
   setSelectedHoldingForLots: (holding: HoldingItem | null) => void;
 }
@@ -71,6 +82,31 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [activeProfile, setActiveProfile] = useState<ProfileId | 'consolidated'>('consolidated');
   const [costBasisMethod, setCostBasisMethod] = useState<CostBasisMethod>('WAC');
   const [activeTab, setActiveTab] = useState<'dashboard' | 'holdings' | 'transactions' | 'tax' | 'manual'>('dashboard');
+
+  const [profiles, setProfiles] = useState<FamilyProfile[]>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_profiles`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error('Failed to load profiles from localStorage', e);
+    }
+    return FAMILY_PROFILES;
+  });
+
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_theme`);
+      if (saved && ['slate', 'emerald', 'navy', 'midnight'].includes(saved)) {
+        return saved as ThemeMode;
+      }
+    } catch (e) {
+      console.error('Failed to load theme from localStorage', e);
+    }
+    return 'slate';
+  });
 
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     try {
@@ -106,9 +142,27 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
   const [isAddTxModalOpen, setIsAddTxModalOpen] = useState(false);
   const [isAddStockModalOpen, setIsAddStockModalOpen] = useState(false);
+  const [isFamilyModalOpen, setIsFamilyModalOpen] = useState(false);
   const [selectedHoldingForLots, setSelectedHoldingForLots] = useState<HoldingItem | null>(null);
 
   // Sync to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${STORAGE_KEY}_profiles`, JSON.stringify(profiles));
+    } catch (e) {
+      console.error('Failed to persist profiles', e);
+    }
+  }, [profiles]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${STORAGE_KEY}_theme`, theme);
+      document.documentElement.setAttribute('data-theme', theme);
+    } catch (e) {
+      console.error('Failed to persist theme', e);
+    }
+  }, [theme]);
+
   useEffect(() => {
     try {
       localStorage.setItem(`${STORAGE_KEY}_tx`, JSON.stringify(transactions));
@@ -132,6 +186,30 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       console.error('Failed to persist custom stocks', e);
     }
   }, [customStocks]);
+
+  // Cross-tab sync listener
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (!e.key) return;
+      if (e.key === `${STORAGE_KEY}_tx` && e.newValue) {
+        try { setTransactions(JSON.parse(e.newValue)); } catch {}
+      }
+      if (e.key === `${STORAGE_KEY}_prices` && e.newValue) {
+        try { setMarketPrices(JSON.parse(e.newValue)); } catch {}
+      }
+      if (e.key === `${STORAGE_KEY}_profiles` && e.newValue) {
+        try { setProfiles(JSON.parse(e.newValue)); } catch {}
+      }
+      if (e.key === `${STORAGE_KEY}_custom_stocks` && e.newValue) {
+        try { setCustomStocks(JSON.parse(e.newValue)); } catch {}
+      }
+      if (e.key === `${STORAGE_KEY}_theme` && e.newValue) {
+        setTheme(e.newValue as ThemeMode);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   // Combined Directory: Master Directory + User's Custom Stocks
   const allStocks = useMemo(() => {
@@ -315,21 +393,60 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     });
   };
 
+  // Family Profile Actions
+  const addProfile = (profileData: Omit<FamilyProfile, 'id'>): FamilyProfile => {
+    const slug = profileData.name.toLowerCase().replace(/[^a-z0-9]/g, '-').slice(0, 15) || 'member';
+    const id = `${slug}-${Date.now().toString().slice(-4)}`;
+    const newProfile: FamilyProfile = {
+      ...profileData,
+      id,
+    };
+    setProfiles((prev) => [...prev, newProfile]);
+    return newProfile;
+  };
+
+  const deleteProfile = (id: ProfileId): { success: boolean; message?: string } => {
+    if (profiles.length <= 1) {
+      return {
+        success: false,
+        message: 'Cannot delete the only remaining family profile. At least one profile is required.',
+      };
+    }
+    // Delete transactions associated with this profile
+    setTransactions((prev) => prev.filter((tx) => tx.profileId !== id));
+    // Remove the profile
+    setProfiles((prev) => prev.filter((p) => p.id !== id));
+
+    if (activeProfile === id) {
+      setActiveProfile('consolidated');
+    }
+    return { success: true };
+  };
+
+  const updateProfile = (updatedProfile: FamilyProfile) => {
+    setProfiles((prev) => prev.map((p) => (p.id === updatedProfile.id ? updatedProfile : p)));
+  };
+
   const resetToDefaults = () => {
     setTransactions(INITIAL_TRANSACTIONS);
     setMarketPrices(INITIAL_MARKET_PRICES);
+    setProfiles(FAMILY_PROFILES);
     setCustomStocks([]);
+    setActiveProfile('consolidated');
     localStorage.removeItem(`${STORAGE_KEY}_tx`);
     localStorage.removeItem(`${STORAGE_KEY}_prices`);
+    localStorage.removeItem(`${STORAGE_KEY}_profiles`);
     localStorage.removeItem(`${STORAGE_KEY}_custom_stocks`);
   };
 
   // Export JSON
   const exportBackupJSON = () => {
     const payload = {
-      version: '1.1',
+      appName: 'SKYadav portfolio App',
+      version: '1.2',
       exportedAt: new Date().toISOString(),
-      profiles: FAMILY_PROFILES,
+      profiles,
+      theme,
       transactions,
       marketPrices,
       customStocks,
@@ -338,7 +455,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Indian_Portfolio_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `SKYadav_Portfolio_Backup_${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -350,8 +467,14 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (Array.isArray(data.transactions) && Array.isArray(data.marketPrices)) {
         setTransactions(data.transactions);
         setMarketPrices(data.marketPrices);
+        if (Array.isArray(data.profiles) && data.profiles.length > 0) {
+          setProfiles(data.profiles);
+        }
         if (Array.isArray(data.customStocks)) {
           setCustomStocks(data.customStocks);
+        }
+        if (data.theme && ['slate', 'emerald', 'navy', 'midnight'].includes(data.theme)) {
+          setTheme(data.theme);
         }
         return true;
       }
@@ -360,6 +483,30 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       console.error('Invalid JSON backup', e);
       return false;
     }
+  };
+
+  // Import Backup from File directly
+  const importBackupFromFile = (file: File): Promise<{ success: boolean; message: string }> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        if (!text) {
+          resolve({ success: false, message: 'Uploaded file is empty.' });
+          return;
+        }
+        const success = importBackupJSON(text);
+        if (success) {
+          resolve({ success: true, message: 'Portfolio backup restored successfully!' });
+        } else {
+          resolve({ success: false, message: 'Invalid portfolio backup file. Required transactions and market prices were missing.' });
+        }
+      };
+      reader.onerror = () => {
+        resolve({ success: false, message: 'Failed to read file from disk.' });
+      };
+      reader.readAsText(file);
+    });
   };
 
   // Export CSV
@@ -456,11 +603,13 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       value={{
         activeProfile,
         setActiveProfile,
-        profiles: FAMILY_PROFILES,
+        profiles,
         costBasisMethod,
         setCostBasisMethod,
         activeTab,
         setActiveTab,
+        theme,
+        setTheme,
         transactions,
         marketPrices,
         allStocks,
@@ -476,8 +625,12 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         bulkUpdatePrices,
         simulateMarketShift,
         resetToDefaults,
+        addProfile,
+        deleteProfile,
+        updateProfile,
         exportBackupJSON,
         importBackupJSON,
+        importBackupFromFile,
         exportHoldingsCSV,
         exportTaxCSV,
         isPricingModalOpen,
@@ -486,6 +639,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setIsAddTxModalOpen,
         isAddStockModalOpen,
         setIsAddStockModalOpen,
+        isFamilyModalOpen,
+        setIsFamilyModalOpen,
         selectedHoldingForLots,
         setSelectedHoldingForLots,
       }}

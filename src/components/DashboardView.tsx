@@ -12,12 +12,21 @@ import {
   Layers,
   Sparkles,
   ExternalLink,
+  Database,
+  Upload,
+  Download,
+  Users,
 } from 'lucide-react';
 import { usePortfolio } from '../context/PortfolioContext';
 import { formatCompactINR, formatINR, formatPercent } from '../utils/formatters';
 import { PortfolioCharts } from './PortfolioCharts';
+import { GreetingBanner } from './GreetingBanner';
 
-export const DashboardView: React.FC = () => {
+interface DashboardViewProps {
+  onOpenBackupModal?: () => void;
+}
+
+export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenBackupModal }) => {
   const {
     summary,
     holdings,
@@ -27,6 +36,7 @@ export const DashboardView: React.FC = () => {
     setActiveTab,
     setIsAddTxModalOpen,
     setIsPricingModalOpen,
+    setIsFamilyModalOpen,
     exportBackupJSON,
     transactions,
   } = usePortfolio();
@@ -97,6 +107,9 @@ export const DashboardView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-12">
+      {/* Time-Based Dynamic Greeting Banner & Status */}
+      <GreetingBanner onOpenBackupModal={onOpenBackupModal || exportBackupJSON} />
+
       {/* Top Banner / Breadcrumb & Status */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-900 text-white p-5 rounded-2xl shadow-sm border border-zinc-800">
         <div>
@@ -140,10 +153,12 @@ export const DashboardView: React.FC = () => {
           </button>
           <button
             id="dash-backup-btn"
-            onClick={exportBackupJSON}
-            className="px-3.5 py-2 rounded-xl text-xs font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 transition-colors"
+            onClick={onOpenBackupModal || exportBackupJSON}
+            className="px-3.5 py-2 rounded-xl text-xs font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 transition-colors flex items-center gap-1.5"
+            title="Import/Export Backup & Sync"
           >
-            Export Backup
+            <Database className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Backup & Sync</span>
           </button>
         </div>
       </div>
@@ -554,6 +569,45 @@ export const DashboardView: React.FC = () => {
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Sovereign Backup & Cross-Device Sync Quick Card */}
+      <div className="bg-white p-5 rounded-2xl border border-zinc-200 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+            <Database className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-zinc-900">
+              Local Data Sovereignty & Portable Backups
+            </h4>
+            <p className="text-xs text-zinc-500 mt-0.5">
+              100% of your trades, family profiles, and custom prices reside in your browser's local storage. Download periodic JSON snapshots or restore previous backups onto any device anytime.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            id="dash-open-backup-modal-btn"
+            type="button"
+            onClick={onOpenBackupModal || exportBackupJSON}
+            className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
+          >
+            <Upload className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Import / Export Backup</span>
+          </button>
+          <button
+            id="dash-download-quick-json-btn"
+            type="button"
+            onClick={exportBackupJSON}
+            className="px-3.5 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-colors"
+            title="Download JSON file directly"
+          >
+            <Download className="w-3.5 h-3.5 text-zinc-600" />
+            <span>Quick JSON</span>
+          </button>
         </div>
       </div>
     </div>
