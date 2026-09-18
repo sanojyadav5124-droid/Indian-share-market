@@ -121,13 +121,13 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [theme, setTheme] = useState<ThemeMode>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_theme`);
-      if (saved && ['slate', 'emerald', 'navy', 'midnight'].includes(saved)) {
+      if (saved && ['slate', 'day'].includes(saved)) {
         return saved as ThemeMode;
       }
     } catch (e) {
       console.error('Failed to load theme from localStorage', e);
     }
-    return 'slate';
+    return 'day';
   });
 
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(() => {
@@ -570,7 +570,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (Array.isArray(data.customStocks)) {
           setCustomStocks(data.customStocks);
         }
-        if (data.theme && ['slate', 'emerald', 'navy', 'midnight'].includes(data.theme)) {
+        if (data.theme && ['slate', 'day'].includes(data.theme)) {
           setTheme(data.theme);
         }
         return true;

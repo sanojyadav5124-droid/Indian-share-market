@@ -86,7 +86,7 @@ export interface FamilyProfile {
   dematAccountNo?: string;
 }
 
-export type ThemeMode = 'slate' | 'emerald' | 'navy' | 'midnight';
+export type ThemeMode = 'slate' | 'day';
 
 export type TransactionType = 
   | 'BUY' 

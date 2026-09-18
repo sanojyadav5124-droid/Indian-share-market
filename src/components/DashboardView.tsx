@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   TrendingUp,
   TrendingDown,
@@ -7,7 +7,6 @@ import {
   ShieldCheck,
   ArrowUpRight,
   ArrowDownRight,
-  BarChart3,
   Calendar,
   Layers,
   Sparkles,
@@ -42,8 +41,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenBackupModal 
     transactions,
   } = usePortfolio();
 
-  const [timeframe, setTimeframe] = useState<'1M' | '6M' | '1Y' | 'ALL'>('6M');
-
   // Find active profile details or null if consolidated
   const currentProfileObj = profiles.find((p) => p.id === activeProfile);
 
@@ -70,41 +67,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenBackupModal 
   const investedValue = costBasisMethod === 'WAC' ? summary.totalInvestedWAC : summary.totalInvestedFIFO;
   const unrealizedPnL = costBasisMethod === 'WAC' ? summary.totalUnrealizedPnLWAC : summary.totalUnrealizedPnLFIFO;
   const unrealizedPnLPercent = costBasisMethod === 'WAC' ? summary.totalUnrealizedPnLPercentWAC : summary.totalUnrealizedPnLPercentFIFO;
-
-  // Realistic mock trend curve points for SVG based on portfolio valuation
-  const baseVal = summary.totalCurrentValue || 1000000;
-  const chartPoints = [
-    { label: 'Apr 25', val: baseVal * 0.82 },
-    { label: 'Jun 25', val: baseVal * 0.86 },
-    { label: 'Aug 25', val: baseVal * 0.84 },
-    { label: 'Oct 25', val: baseVal * 0.92 },
-    { label: 'Dec 25', val: baseVal * 0.95 },
-    { label: 'Feb 26', val: baseVal * 0.91 },
-    { label: 'Now', val: baseVal },
-  ];
-
-  const minVal = Math.min(...chartPoints.map((p) => p.val)) * 0.95;
-  const maxVal = Math.max(...chartPoints.map((p) => p.val)) * 1.05;
-
-  const svgWidth = 700;
-  const svgHeight = 160;
-
-  const getCoordinates = (index: number, val: number) => {
-    const x = (index / (chartPoints.length - 1)) * (svgWidth - 40) + 20;
-    const y = svgHeight - 20 - ((val - minVal) / (maxVal - minVal)) * (svgHeight - 40);
-    return { x, y };
-  };
-
-  const polylinePoints = chartPoints
-    .map((p, i) => {
-      const { x, y } = getCoordinates(i, p.val);
-      return `${x},${y}`;
-    })
-    .join(' ');
-
-  const areaPoints = `${getCoordinates(0, chartPoints[0].val).x},${svgHeight - 10} ${polylinePoints} ${
-    getCoordinates(chartPoints.length - 1, chartPoints[chartPoints.length - 1].val).x
-  },${svgHeight - 10}`;
 
   return (
     <div className="space-y-6 pb-12">
@@ -300,105 +262,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenBackupModal 
               Ledger &rarr;
             </button>
           </div>
-        </div>
-      </div>
-
-      {/* Interactive Trend Chart Card */}
-      <div className="bg-white p-5 rounded-2xl border border-zinc-200 shadow-2xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-          <div>
-            <h2 className="text-sm font-semibold text-zinc-900 tracking-tight flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-emerald-600" />
-              <span>Household Valuation Trajectory</span>
-            </h2>
-            <p className="text-xs text-zinc-500">
-              Estimated historical growth based on portfolio accumulation and current market valuations
-            </p>
-          </div>
-
-          <div className="flex items-center bg-zinc-100 p-1 rounded-lg border border-zinc-200 self-start sm:self-auto">
-            {(['1M', '6M', '1Y', 'ALL'] as const).map((tf) => (
-              <button
-                key={tf}
-                id={`timeframe-${tf}-btn`}
-                onClick={() => setTimeframe(tf)}
-                className={`px-2.5 py-1 text-[11px] font-medium rounded ${
-                  timeframe === tf
-                    ? 'bg-white text-zinc-900 shadow-xs font-semibold'
-                    : 'text-zinc-600 hover:text-zinc-900'
-                }`}
-              >
-                {tf}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* SVG Chart */}
-        <div className="w-full overflow-hidden pt-2">
-          <svg
-            viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-            className="w-full h-44 overflow-visible"
-            preserveAspectRatio="none"
-          >
-            <defs>
-              <linearGradient id="valGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
-                <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
-              </linearGradient>
-            </defs>
-
-            {/* Horizontal Grid lines */}
-            {[0.25, 0.5, 0.75].map((factor, idx) => (
-              <line
-                key={idx}
-                x1="20"
-                y1={svgHeight * factor}
-                x2={svgWidth - 20}
-                y2={svgHeight * factor}
-                stroke="#f4f4f5"
-                strokeWidth="1"
-                strokeDasharray="4 4"
-              />
-            ))}
-
-            {/* Gradient Area */}
-            <polygon points={areaPoints} fill="url(#valGrad)" />
-
-            {/* Path Line */}
-            <polyline
-              fill="none"
-              stroke="#059669"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              points={polylinePoints}
-            />
-
-            {/* Dots */}
-            {chartPoints.map((p, i) => {
-              const { x, y } = getCoordinates(i, p.val);
-              return (
-                <g key={i} className="group cursor-pointer">
-                  <circle
-                    cx={x}
-                    cy={y}
-                    r="4"
-                    className="fill-white stroke-emerald-600 stroke-2 hover:r-6 transition-all"
-                  />
-                  <text
-                    x={x}
-                    y={svgHeight}
-                    textAnchor="middle"
-                    fontSize="10"
-                    className="fill-zinc-400 font-mono"
-                  >
-                    {p.label}
-                  </text>
-                </g>
-              );
-            })}
-          </svg>
         </div>
       </div>
 

@@ -75,10 +75,8 @@ export const GreetingBanner: React.FC<GreetingBannerProps> = ({ onOpenBackupModa
       : activeProfileObj?.name || 'S. K. Yadav';
 
   const themes: { id: ThemeMode; label: string; bg: string; dot: string }[] = [
-    { id: 'slate', label: 'Slate Neutral', bg: 'bg-slate-100', dot: 'bg-slate-800' },
-    { id: 'emerald', label: 'Emerald Wealth', bg: 'bg-emerald-50', dot: 'bg-emerald-600' },
-    { id: 'navy', label: 'Navy Corporate', bg: 'bg-blue-50', dot: 'bg-blue-600' },
-    { id: 'midnight', label: 'Midnight Dark', bg: 'bg-zinc-900', dot: 'bg-emerald-400' },
+    { id: 'day', label: 'Day (Light)', bg: 'bg-zinc-100', dot: 'bg-emerald-500' },
+    { id: 'slate', label: 'Slate (Dark)', bg: 'bg-zinc-900', dot: 'bg-slate-400' },
   ];
 
   return (
