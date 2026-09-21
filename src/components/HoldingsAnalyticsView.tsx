@@ -11,6 +11,8 @@ import {
   TrendingUp,
   TrendingDown,
   Info,
+  LayoutGrid,
+  Table as TableIcon,
 } from 'lucide-react';
 import { usePortfolio } from '../context/PortfolioContext';
 import { HoldingItem, InstrumentType, MarketCap, Sector } from '../types';
@@ -40,6 +42,7 @@ export const HoldingsAnalyticsView: React.FC = () => {
     exportHoldingsCSV,
     summary,
     activeProfile,
+    isMobileView,
   } = usePortfolio();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,6 +51,9 @@ export const HoldingsAnalyticsView: React.FC = () => {
   const [sortField, setSortField] = useState<'value' | 'pnl' | 'weight' | 'name'>('value');
   const [sortAsc, setSortAsc] = useState(false);
   const [hoveredSector, setHoveredSector] = useState<string | null>(null);
+  const [customViewMode, setCustomViewMode] = useState<'auto' | 'cards' | 'table'>('auto');
+
+  const showCards = customViewMode === 'cards' || (customViewMode === 'auto' && isMobileView);
 
   // Filtered and sorted holdings
   const filteredHoldings = useMemo(() => {
@@ -417,6 +423,34 @@ export const HoldingsAnalyticsView: React.FC = () => {
               <option value="Small Cap">Small Cap</option>
             </select>
 
+            {/* View format switcher (Cards vs Table) */}
+            <div className="flex items-center bg-zinc-100 p-0.5 rounded-lg border border-zinc-200">
+              <button
+                type="button"
+                onClick={() => setCustomViewMode('cards')}
+                className={`p-1.5 rounded-md transition-all ${
+                  showCards
+                    ? 'bg-white text-zinc-900 shadow-2xs font-semibold'
+                    : 'text-zinc-500 hover:text-zinc-800'
+                }`}
+                title="Card View (Mobile Optimized)"
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setCustomViewMode('table')}
+                className={`p-1.5 rounded-md transition-all ${
+                  !showCards
+                    ? 'bg-white text-zinc-900 shadow-2xs font-semibold'
+                    : 'text-zinc-500 hover:text-zinc-800'
+                }`}
+                title="Table View (Full Grid)"
+              >
+                <TableIcon className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
             {/* Export CSV button */}
             <button
               id="export-holdings-csv-btn"
@@ -429,9 +463,117 @@ export const HoldingsAnalyticsView: React.FC = () => {
           </div>
         </div>
 
-        {/* Robust Data Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+        {/* Conditional View: Card View (Mobile) vs Table View (Desktop) */}
+        {showCards ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            {filteredHoldings.length > 0 ? (
+              filteredHoldings.map((h) => {
+                const avgPrice = costBasisMethod === 'WAC' ? h.wacPrice : h.fifoPrice;
+                const pnl = costBasisMethod === 'WAC' ? h.unrealizedPnLWAC : h.unrealizedPnLFIFO;
+                const pnlPct =
+                  costBasisMethod === 'WAC' ? h.unrealizedPnLPercentWAC : h.unrealizedPnLPercentFIFO;
+
+                return (
+                  <div
+                    key={h.symbol}
+                    className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 hover:bg-zinc-50 transition-all space-y-3"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-zinc-900 text-sm">{h.symbol}</span>
+                          <span
+                            className={`text-[9px] uppercase px-1.5 py-0.2 rounded font-mono font-semibold ${
+                              h.instrumentType === 'MUTUAL_FUND'
+                                ? 'bg-purple-100 text-purple-700'
+                                : 'bg-zinc-200 text-zinc-700'
+                            }`}
+                          >
+                            {h.instrumentType === 'MUTUAL_FUND' ? 'MF' : 'EQ'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-zinc-500 line-clamp-1 mt-0.5">{h.name}</p>
+                      </div>
+
+                      <div className="text-right flex-shrink-0">
+                        <div className="font-bold text-sm text-zinc-900 font-mono">
+                          {formatINR(h.cmp)}
+                        </div>
+                        <span
+                          className={`text-[10px] font-mono font-medium ${
+                            h.dayChangePercent >= 0 ? 'text-emerald-600' : 'text-rose-600'
+                          }`}
+                        >
+                          {formatPercent(h.dayChangePercent)} today
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-zinc-200/60 text-xs font-mono">
+                      <div>
+                        <span className="text-[10px] text-zinc-400 font-sans block">Quantity & Avg Buy</span>
+                        <span className="font-semibold text-zinc-800">
+                          {h.totalQuantity} @ {formatINR(avgPrice)}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-zinc-400 font-sans block">Current Value</span>
+                        <span className="font-bold text-zinc-900">{formatINR(h.currentValue)}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-zinc-200/60 text-xs">
+                      <div>
+                        <span className="text-[10px] text-zinc-400 font-sans block">Unrealized P&L</span>
+                        <div
+                          className={`font-bold font-mono ${
+                            pnl >= 0 ? 'text-emerald-700' : 'text-rose-700'
+                          }`}
+                        >
+                          {formatINR(pnl)} ({formatPercent(pnlPct)})
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => setSelectedHoldingForLots(h)}
+                        className="px-2.5 py-1.5 rounded-lg text-xs font-medium bg-zinc-200/70 hover:bg-zinc-200 text-zinc-800 transition-colors flex items-center gap-1 font-sans"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>FIFO Lots</span>
+                      </button>
+                    </div>
+
+                    {/* Profile Breakdown tags */}
+                    <div className="flex flex-wrap items-center gap-1 pt-1">
+                      {h.profileBreakdown.self > 0 && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          Arjun: {h.profileBreakdown.self}
+                        </span>
+                      )}
+                      {h.profileBreakdown.spouse > 0 && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">
+                          Pooja: {h.profileBreakdown.spouse}
+                        </span>
+                      )}
+                      {h.profileBreakdown.parent > 0 && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
+                          Ramesh: {h.profileBreakdown.parent}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="col-span-full py-8 text-center text-zinc-400 text-xs">
+                No holdings match your search or filter criteria.
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Robust Data Table with min-width to avoid overlapping */
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] text-left border-collapse text-xs">
             <thead>
               <tr className="border-b border-zinc-200 text-zinc-500 font-medium bg-zinc-50/60">
                 <th
@@ -661,6 +803,7 @@ export const HoldingsAnalyticsView: React.FC = () => {
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </div>
   );

@@ -185,7 +185,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenBackupModal 
       </div>
 
       {/* Primary Key Metrics Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Invested Value */}
         <div className="bg-white p-4 rounded-xl border border-zinc-200 shadow-2xs">
           <div className="flex items-center justify-between text-xs text-zinc-500 font-medium">

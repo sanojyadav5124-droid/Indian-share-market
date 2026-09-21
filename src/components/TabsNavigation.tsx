@@ -60,9 +60,9 @@ export const TabsNavigation: React.FC = () => {
   ] as const;
 
   return (
-    <div className="border-b border-zinc-200 bg-white sticky top-0 z-30 shadow-xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <nav className="flex space-x-1 sm:space-x-3 overflow-x-auto py-2.5 no-scrollbar">
+    <div className="border-b border-zinc-200 bg-white sticky top-16 z-20 shadow-2xs">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <nav className="flex space-x-1.5 sm:space-x-3 overflow-x-auto py-2 sm:py-2.5 scrollbar-none">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -72,17 +72,17 @@ export const TabsNavigation: React.FC = () => {
                 key={tab.id}
                 id={`tab-${tab.id}-btn`}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                   isActive
                     ? 'bg-zinc-900 text-white shadow-xs font-semibold'
                     : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-400' : 'text-zinc-500'}`} />
+                <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isActive ? 'text-emerald-400' : 'text-zinc-500'}`} />
                 <span>{tab.label}</span>
                 {tab.badge && (
                   <span
-                    className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${
+                    className={`text-[9px] sm:text-[10px] font-mono px-1.5 py-0.5 rounded-full ${
                       (tab as any).badgeClass
                         ? (tab as any).badgeClass
                         : isActive

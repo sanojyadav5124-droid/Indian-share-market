@@ -216,6 +216,8 @@ export interface PortfolioSummary {
 
 export type CostBasisMethod = 'WAC' | 'FIFO';
 
+export type ViewMode = 'auto' | 'mobile' | 'desktop';
+
 export type ActiveTab = 
   | 'dashboard' 
   | 'holdings' 

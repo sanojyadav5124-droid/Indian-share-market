@@ -14,6 +14,7 @@ import {
   StockDirectoryItem,
   ThemeMode,
   Transaction,
+  ViewMode,
 } from '../types';
 import {
   FAMILY_PROFILES,
@@ -34,6 +35,9 @@ interface PortfolioContextType {
   setActiveTab: (tab: ActiveTab) => void;
   theme: ThemeMode;
   setTheme: (theme: ThemeMode) => void;
+  viewMode: ViewMode;
+  setViewMode: (mode: ViewMode) => void;
+  isMobileView: boolean;
 
   // Fiscal Year & Benchmark
   selectedFY: FiscalYear;
@@ -105,6 +109,8 @@ interface PortfolioContextType {
   setIsBackupModalOpen: (open: boolean) => void;
   isExportModalOpen: boolean;
   setIsExportModalOpen: (open: boolean) => void;
+  isSettingsModalOpen: boolean;
+  setIsSettingsModalOpen: (open: boolean) => void;
   selectedHoldingForLots: HoldingItem | null;
   setSelectedHoldingForLots: (holding: HoldingItem | null) => void;
 }
@@ -144,6 +150,46 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
     return 'day';
   });
+
+  const [viewMode, setViewModeState] = useState<ViewMode>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_view_mode`);
+      if (saved && ['auto', 'mobile', 'desktop'].includes(saved)) {
+        return saved as ViewMode;
+      }
+    } catch (e) {}
+    return 'auto';
+  });
+
+  const [windowWidth, setWindowWidth] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth;
+    }
+    return 1024;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const setViewMode = (mode: ViewMode) => {
+    setViewModeState(mode);
+    try {
+      localStorage.setItem(`${STORAGE_KEY}_view_mode`, mode);
+    } catch (e) {}
+  };
+
+  const isMobileView = useMemo(() => {
+    if (viewMode === 'mobile') return true;
+    if (viewMode === 'desktop') return false;
+    return windowWidth < 768;
+  }, [viewMode, windowWidth]);
+
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   const [isFetchingLiveCalendar, setIsFetchingLiveCalendar] = useState(false);
   const [lastCalendarSyncTime, setLastCalendarSyncTime] = useState<string | null>(() => {
@@ -1076,6 +1122,9 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setActiveTab,
         theme,
         setTheme,
+        viewMode,
+        setViewMode,
+        isMobileView,
         selectedFY,
         setSelectedFY,
         selectedBenchmark,
@@ -1131,6 +1180,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setIsBackupModalOpen,
         isExportModalOpen,
         setIsExportModalOpen,
+        isSettingsModalOpen,
+        setIsSettingsModalOpen,
         selectedHoldingForLots,
         setSelectedHoldingForLots,
       }}

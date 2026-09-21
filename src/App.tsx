@@ -16,6 +16,8 @@ import { LotDetailsModal } from './components/LotDetailsModal';
 import { FamilyProfileManagerModal } from './components/FamilyProfileManagerModal';
 import { BackupSyncModal } from './components/BackupSyncModal';
 import { ExportModal } from './components/ExportModal';
+import { SettingsModal } from './components/SettingsModal';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { ShieldCheck, HardDrive, BookOpen, Layers } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
@@ -30,7 +32,7 @@ const MainLayout: React.FC = () => {
   const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-zinc-50/70 text-zinc-900 font-sans antialiased flex flex-col selection:bg-zinc-900 selection:text-white">
+    <div className="min-h-screen bg-zinc-50/70 text-zinc-900 font-sans antialiased flex flex-col selection:bg-zinc-900 selection:text-white pb-16 md:pb-0">
       {/* Global Top Header with Profile Selector & Price Manager */}
       <Header onOpenBackupModal={() => setIsBackupModalOpen(true)} />
 
@@ -38,7 +40,7 @@ const MainLayout: React.FC = () => {
       <TabsNavigation />
 
       {/* Main App Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-6">
         {activeTab === 'dashboard' && (
           <DashboardView onOpenBackupModal={() => setIsBackupModalOpen(true)} />
         )}
@@ -50,7 +52,11 @@ const MainLayout: React.FC = () => {
         {activeTab === 'manual' && <UserManualView />}
       </main>
 
+      {/* Mobile Floating Bottom Bar */}
+      <MobileBottomNav />
+
       {/* Global Modals */}
+      <SettingsModal />
       <PricingManagerModal />
       <AddTransactionModal />
       <AddCustomStockModal />
