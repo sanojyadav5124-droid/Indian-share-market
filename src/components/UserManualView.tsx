@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   BookOpen,
   HelpCircle,
@@ -10,357 +10,612 @@ import {
   CheckCircle2,
   AlertCircle,
   FileCode,
+  LayoutDashboard,
+  PieChart,
+  ReceiptText,
+  Calendar,
+  Brain,
+  Download,
+  Settings,
+  Users,
+  TrendingUp,
+  Landmark,
+  ShieldCheck,
+  RefreshCw,
+  Coins,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 export const UserManualView: React.FC = () => {
+  const [activeSection, setActiveSection] = useState<string>('all');
+
+  const navigationItems = [
+    { id: 'all', label: 'Complete Handbook' },
+    { id: 'architecture', label: '1. Architecture & Data Sovereignty' },
+    { id: 'dashboard', label: '2. Executive Dashboard Tab' },
+    { id: 'holdings', label: '3. Holdings & FIFO/WAC Tab' },
+    { id: 'ledger', label: '4. Transaction Ledger & Friction' },
+    { id: 'tax_engine', label: '5. Capital Gains Tax (Budget 2024)' },
+    { id: 'calendar', label: '6. Dalal Street Catalyst Calendar' },
+    { id: 'ai_copilot', label: '7. Gemini 3.8 Flash AI Co-Pilot' },
+    { id: 'corporate_actions', label: '8. Corporate Actions & Rebasing' },
+    { id: 'exports_sync', label: '9. Exports, Reports & Sync' },
+    { id: 'view_modes', label: '10. View Modes & Mobile PWA' },
+  ];
+
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-16">
-      {/* Page Title */}
-      <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-2xs">
-        <div className="flex items-center gap-2.5 text-xs font-mono text-zinc-500 uppercase">
+    <div className="max-w-5xl mx-auto space-y-8 pb-20">
+      {/* Page Header */}
+      <div className="bg-white p-6 sm:p-8 rounded-2xl border border-zinc-200 shadow-2xs">
+        <div className="flex items-center gap-2.5 text-xs font-mono text-zinc-500 uppercase tracking-wider">
           <BookOpen className="w-4 h-4 text-emerald-600" />
-          <span>Documentation & Indian Tax Accounting Manual</span>
+          <span>Official Documentation & Indian Tax Accounting Manual</span>
         </div>
-        <h1 className="text-2xl font-bold text-zinc-900 tracking-tight mt-1">
-          Indian Wealth & FIFO Tax Engine Reference Guide
+        <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 tracking-tight mt-2">
+          SKYadav Portfolio & FIFO Tax Engine Manual
         </h1>
-        <p className="text-sm text-zinc-600 mt-1">
-          A definitive handbook for First-In, First-Out (FIFO) tax computations, inventory Weighted Average Cost (WAC) methodology, corporate actions rebasing, and client-side data sovereignty.
+        <p className="text-sm sm:text-base text-zinc-600 mt-2 leading-relaxed">
+          The definitive reference guide for multi-demat family wealth tracking, First-In First-Out (FIFO) tax lot allocation, Weighted Average Cost (WAC) inventory accounting, corporate actions cost rebasing, Dalal Street catalyst scheduling, and Gemini 3.8 Flash AI portfolio intelligence.
         </p>
+
+        {/* Section Quick Jump Filter */}
+        <div className="mt-6 pt-5 border-t border-zinc-100 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+          <span className="text-xs font-semibold text-zinc-500 shrink-0">Filter Chapter:</span>
+          {navigationItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveSection(item.id)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all shrink-0 ${
+                activeSection === item.id
+                  ? 'bg-zinc-900 text-white font-semibold shadow-2xs'
+                  : 'bg-zinc-100 text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200'
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Critical Data Safety Warning */}
-      <div className="p-5 rounded-2xl border border-amber-200 bg-amber-50/70 shadow-2xs">
-        <div className="flex items-start gap-3">
+      {/* Critical Data Safety & Local Storage Notice */}
+      <div className="p-5 sm:p-6 rounded-2xl border border-amber-200 bg-amber-50/70 shadow-2xs">
+        <div className="flex items-start gap-3.5">
           <ShieldAlert className="w-5 h-5 text-amber-700 flex-shrink-0 mt-0.5" />
           <div className="space-y-2">
-            <h2 className="text-sm font-bold text-amber-900">
-              Data Sovereignty Warning (100% Local-First & Zero Cloud Runtime)
+            <h2 className="text-sm sm:text-base font-bold text-amber-900">
+              Data Sovereignty Mandate: 100% Local-First & Zero Cloud Telemetry
             </h2>
-            <p className="text-xs text-amber-800 leading-relaxed">
-              This application has <strong>ZERO structural runtime dependency</strong> on any remote database or external cloud servers. All transactions, family member profiles, cash ledgers, and market pricing live exclusively within your browser's <code className="bg-amber-100 px-1 py-0.5 rounded font-mono text-amber-900">localStorage</code>.
+            <p className="text-xs sm:text-sm text-amber-800 leading-relaxed">
+              This application has <strong>ZERO structural dependency on any external database or private remote server</strong>. All trade ledgers, family PAN records, demat numbers, cash balances, and custom market prices reside exclusively inside your device's browser <code className="bg-amber-100/90 px-1.5 py-0.5 rounded font-mono font-bold text-amber-950">localStorage</code>.
             </p>
-            <div className="text-xs text-amber-800 leading-relaxed font-medium">
-              Important precautions:
-              <ul className="list-disc pl-5 mt-1 space-y-1 font-normal">
-                <li>Clearing your browser's cookies, site data, or cache will permanently delete your stored records.</li>
-                <li>Using browser Private / Incognito browsing mode prevents data from persisting across sessions.</li>
-                <li>
-                  <strong>Mandatory practice:</strong> Regularly use the <strong>"Backup / Sync"</strong> button to download a JSON snapshot to your local computer, phone, or private cloud storage.
-                </li>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs text-amber-900">
+              <div className="p-3 bg-amber-100/50 rounded-xl border border-amber-200/80">
+                <span className="font-bold block mb-1">⚠️ Cache Clearing</span>
+                <span>Clearing your browser cache or site data will wipe stored ledgers. Always keep a downloaded JSON backup.</span>
+              </div>
+              <div className="p-3 bg-amber-100/50 rounded-xl border border-amber-200/80">
+                <span className="font-bold block mb-1">🔒 Private / Incognito</span>
+                <span>Incognito sessions discard all state upon window closing. Use standard browsing mode for persistence.</span>
+              </div>
+              <div className="p-3 bg-amber-100/50 rounded-xl border border-amber-200/80">
+                <span className="font-bold block mb-1">💾 Periodic Backups</span>
+                <span>Click "Backup / Sync" to save an encrypted snapshot to your Google Drive, iCloud, or local hard disk.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* CHAPTER 1: Core Architecture & Synchronization */}
+      {(activeSection === 'all' || activeSection === 'architecture') && (
+        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-zinc-200 shadow-2xs space-y-5">
+          <div className="flex items-center gap-2.5 text-zinc-900">
+            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">
+              1
+            </div>
+            <h2 className="text-lg font-bold tracking-tight">
+              System Architecture, Multi-Tab Broadcast & Cross-Device Sync
+            </h2>
+          </div>
+
+          <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed">
+            The platform provides bank-grade privacy by eliminating central storage vectors. Financial calculations (XIRR, FIFO lot peeling, statutory STT/stamp duty computations) are executed directly on client CPU threads.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2">
+              <div className="font-bold text-zinc-900 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <span>HTML5 Local Persistence</span>
+              </div>
+              <p className="text-zinc-600 leading-relaxed text-[11px]">
+                Transactions and market quotes are atomically serialized into <code className="bg-zinc-200/80 px-1 py-0.5 rounded font-mono text-zinc-800">localStorage</code> with key prefixes <code className="font-mono text-zinc-800">portfolio_transactions_v2</code> and <code className="font-mono text-zinc-800">portfolio_prices_v2</code>.
+              </p>
+            </div>
+
+            <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2">
+              <div className="font-bold text-zinc-900 flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 text-indigo-600" />
+                <span>Multi-Tab Broadcast Channel</span>
+              </div>
+              <p className="text-zinc-600 leading-relaxed text-[11px]">
+                Opening the application in multiple browser tabs triggers real-time <code className="bg-zinc-200/80 px-1 py-0.5 rounded font-mono text-zinc-800">window.storage</code> events. Logging a trade in Tab 1 updates charts and totals in Tab 2 instantly with zero page reloads.
+              </p>
+            </div>
+
+            <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2">
+              <div className="font-bold text-zinc-900 flex items-center gap-2">
+                <Download className="w-4 h-4 text-amber-600" />
+                <span>Portable JSON Snapshots</span>
+              </div>
+              <p className="text-zinc-600 leading-relaxed text-[11px]">
+                Transferring portfolios across devices (e.g. desktop to smartphone) is handled via atomic JSON export files. Uploading the JSON file on the target device restores all family accounts and trade histories in &lt;1 second.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CHAPTER 2: Executive Dashboard Tab */}
+      {(activeSection === 'all' || activeSection === 'dashboard') && (
+        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-zinc-200 shadow-2xs space-y-5">
+          <div className="flex items-center gap-2.5 text-zinc-900">
+            <div className="w-8 h-8 rounded-lg bg-zinc-900 text-white flex items-center justify-center font-bold text-sm">
+              <LayoutDashboard className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold tracking-tight">
+                Tab 1: Executive Wealth Dashboard
+              </h2>
+              <span className="text-xs text-zinc-500">Holistic household valuation, benchmark alpha, and asset distribution</span>
+            </div>
+          </div>
+
+          <div className="space-y-3 text-xs sm:text-sm text-zinc-600 leading-relaxed">
+            <p>
+              The <strong>Executive Dashboard</strong> serves as the central command center for your entire family wealth ledger. Key functional sections include:
+            </p>
+            <ul className="list-disc pl-5 space-y-2 text-xs text-zinc-700">
+              <li>
+                <strong>Household Net Worth Header:</strong> Displays aggregate net worth (Equities + Mutual Funds + Liquid Cash reserves) with PAN indicator and quick-action toolbars (Live Price Sync, Export Reports, Offline Price Manager, Backup/Sync).
+              </li>
+              <li>
+                <strong>Primary 4-Metric Grid:</strong>
+                <ul className="list-circle pl-5 mt-1 space-y-1 text-zinc-600">
+                  <li><strong>Total Invested Capital:</strong> Dynamically calculated under your active costing lens (WAC or FIFO).</li>
+                  <li><strong>Current Market Value:</strong> Total holdings value computed against latest Current Market Prices (CMP).</li>
+                  <li><strong>Total Unrealized P&L:</strong> Absolute gains/losses in INR along with total percentage return.</li>
+                  <li><strong>1-Day Market Movement:</strong> Real-time daily gain or loss calculated against previous day's market close.</li>
+                </ul>
+              </li>
+              <li>
+                <strong>Alpha vs Benchmark Comparison:</strong> Compares your portfolio return percentage against premier Indian indices (<strong>NIFTY 50</strong>, <strong>NIFTY NEXT 50</strong>, <strong>NIFTY SMALLCAP 250</strong>) with live alpha calculations (+/-%).
+              </li>
+              <li>
+                <strong>Interactive Distribution Charts:</strong> Dynamic visual breakdown by <strong>Sector</strong> (Financials, IT, Auto, Oil & Gas, Capital Goods, Pharma, FMCG, Chemicals) and <strong>AMFI Market Cap</strong> (Large Cap, Mid Cap, Small Cap, Cash Reserve) with Donut and Bar chart renderers.
+              </li>
+              <li>
+                <strong>Family Demat Breakdown:</strong> Visual cards detailing individual equity values, liquid cash balances, and percentage shares for each registered family member (Self, Spouse, Parent, HUF).
+              </li>
+              <li>
+                <strong>Top Gainers, Allocations & Corporate Actions Feed:</strong> Instant lists highlighting your biggest winning scrips, top concentrated positions, and recent dividend/bonus/split ledger events.
+              </li>
+            </ul>
+          </div>
+        </div>
+      )}
+
+      {/* CHAPTER 3: Holdings & FIFO/WAC Analytics Tab */}
+      {(activeSection === 'all' || activeSection === 'holdings') && (
+        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-zinc-200 shadow-2xs space-y-5">
+          <div className="flex items-center gap-2.5 text-zinc-900">
+            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">
+              <PieChart className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold tracking-tight">
+                Tab 2: Holdings Inventory & FIFO Lot Inspector
+              </h2>
+              <span className="text-xs text-zinc-500">Dual inventory costing, multi-parameter filtering, and lot peeling inspector</span>
+            </div>
+          </div>
+
+          <div className="space-y-4 text-xs sm:text-sm text-zinc-600 leading-relaxed">
+            <p>
+              The <strong>Holdings Analytics</strong> tab presents a granular view of every open position held in your demat accounts.
+            </p>
+
+            {/* Comparison Table */}
+            <div className="overflow-x-auto border border-zinc-200 rounded-xl">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-zinc-50 border-b border-zinc-200 text-zinc-700 font-bold">
+                  <tr>
+                    <th className="p-3">Costing Lens</th>
+                    <th className="p-3">Accounting Formula</th>
+                    <th className="p-3">Primary Use Case</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-200 text-zinc-600">
+                  <tr>
+                    <td className="p-3 font-bold text-zinc-900">Weighted Average Cost (WAC)</td>
+                    <td className="p-3 font-mono text-[11px]">(Old_Qty × Old_Avg + Buy_Cost) / Total_Qty</td>
+                    <td className="p-3">Default broker view (Zerodha/Groww) for true blended portfolio performance.</td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-bold text-zinc-900">First-In First-Out (FIFO)</td>
+                    <td className="p-3 font-mono text-[11px]">Σ (Open_Lot_Qty × Lot_Net_Cost) / Total_Qty</td>
+                    <td className="p-3">Mandated by Indian Income Tax Department for capital gains computation.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="space-y-2 text-xs text-zinc-700">
+              <span className="font-bold text-zinc-900 block">Interactive Controls on this Tab:</span>
+              <ul className="list-disc pl-5 space-y-1.5">
+                <li><strong>Live Search Bar:</strong> Instant fuzzy search across stock symbols, full company names, or sectors.</li>
+                <li><strong>Multi-Dimensional Filters:</strong> Filter by Asset Class (All / Equities / Mutual Funds), Sector (IT, Financials, Auto, etc.), or Market Cap (Large, Mid, Small).</li>
+                <li><strong>View Switcher (Card vs Table):</strong> Toggle between full Desktop Grid and Mobile-Optimized Card view.</li>
+                <li><strong>FIFO Lots Inspector Modal:</strong> Click the "FIFO Lots" button on any scrip to inspect every open buy tranche, original acquisition date, holding duration in days, net purchase cost, and short/long-term tax eligibility.</li>
               </ul>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* NEW CHAPTER: Foundation Architecture & How Sync Works */}
-      <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-2xs space-y-5">
-        <div className="flex items-center gap-2 text-zinc-900">
-          <HelpCircle className="w-5 h-5 text-emerald-600" />
-          <h2 className="text-base font-bold tracking-tight">
-            Foundation Operations: Local Storage, PWA Offline & How Sync Works
-          </h2>
-        </div>
-
-        <p className="text-xs text-zinc-600 leading-relaxed">
-          SKYadav portfolio App is engineered as a <strong>100% sovereign, local-first progressive web application</strong>. Unlike traditional fintech portals that store your sensitive trade logs and PAN records on third-party remote databases, here all financial computation, tax audits, and data persistence remain exclusively on your local hardware.
-        </p>
-
-        {/* 3 Pillars Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-          <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2">
-            <div className="font-bold text-zinc-900 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs">1</span>
-              <span>Local-First Persistence</span>
+      {/* CHAPTER 4: Transaction Ledger & Statutory Friction Engine */}
+      {(activeSection === 'all' || activeSection === 'ledger') && (
+        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-zinc-200 shadow-2xs space-y-5">
+          <div className="flex items-center gap-2.5 text-zinc-900">
+            <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center font-bold text-sm">
+              <ReceiptText className="w-4 h-4" />
             </div>
-            <p className="text-zinc-600 leading-relaxed text-[11px]">
-              Every trade logged, price updated, or family member registered is immediately written synchronously to your browser's HTML5 <code className="bg-zinc-200/80 px-1 py-0.2 rounded font-mono">localStorage</code>. Closing the browser tab, shutting down your device, or restarting your computer preserves your data completely.
+            <div>
+              <h2 className="text-lg font-bold tracking-tight">
+                Tab 3: Transaction Ledger & Statutory Friction Engine
+              </h2>
+              <span className="text-xs text-zinc-500">Immutable trade history, statutory charge estimation, and cash balance routing</span>
+            </div>
+          </div>
+
+          <div className="space-y-4 text-xs sm:text-sm text-zinc-600 leading-relaxed">
+            <p>
+              Every corporate action, buy, sell, or dividend is permanently recorded with full audit trail capabilities.
             </p>
-          </div>
 
-          <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2">
-            <div className="font-bold text-zinc-900 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-800 flex items-center justify-center text-xs">2</span>
-              <span>Multi-Tab Real-Time Sync</span>
-            </div>
-            <p className="text-zinc-600 leading-relaxed text-[11px]">
-              If you open this portfolio across multiple browser tabs or windows simultaneously, the app uses background <code className="bg-zinc-200/80 px-1 py-0.2 rounded font-mono">storage</code> events. Logging a new order or adjusting a price in Tab 1 broadcasts instantly to Tab 2 and Tab 3 without requiring a page refresh.
-            </p>
-          </div>
-
-          <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2">
-            <div className="font-bold text-zinc-900 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center text-xs">3</span>
-              <span>Device-to-Device Sync</span>
-            </div>
-            <p className="text-zinc-600 leading-relaxed text-[11px]">
-              Because no remote servers hold your unencrypted financial data, moving your portfolio between your laptop, office PC, and mobile phone is executed via <strong>Portable JSON Backups</strong>. Export from Device A, store in your private Google Drive or USB, and click "Import Backup" on Device B.
-            </p>
-          </div>
-        </div>
-
-        {/* Step-by-Step Sync Guide */}
-        <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200 space-y-3 text-xs">
-          <span className="font-bold text-zinc-900 block">How to Sync Across Multiple Devices:</span>
-          <div className="space-y-2 text-zinc-600">
-            <div className="flex items-start gap-2">
-              <span className="w-5 h-5 rounded bg-zinc-200 text-zinc-800 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">A</span>
-              <p>On your primary device, click <strong>"Backup / Sync" &rarr; "Download Backup (.json)"</strong>. This downloads an atomic snapshot containing all trades, family members, custom tickers, and market prices.</p>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="w-5 h-5 rounded bg-zinc-200 text-zinc-800 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">B</span>
-              <p>Save or send this file to your personal cloud storage (Google Drive, iCloud, OneDrive) or email.</p>
-            </div>
-            <div className="flex items-start gap-2">
-              <span className="w-5 h-5 rounded bg-zinc-200 text-zinc-800 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">C</span>
-              <p>Open the app on your phone, tablet, or secondary PC. Click <strong>"Backup / Sync" &rarr; "Choose or Drop JSON File"</strong> and select your saved backup. All records restore in 1 second.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* PWA / Add to Screen Section */}
-        <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200 space-y-2 text-xs">
-          <div className="flex items-center gap-2 font-bold text-emerald-900">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>Progressive Web App (PWA): True Offline Installation</span>
-          </div>
-          <p className="text-emerald-800 leading-relaxed text-[11px]">
-            This app is equipped with a Service Worker and Web App Manifest. You can install it natively on your computer or smartphone:
-          </p>
-          <ul className="list-disc pl-5 space-y-1 text-emerald-800 text-[11px]">
-            <li><strong>Desktop (Chrome/Edge):</strong> Click the <strong>"Install App"</strong> button in the banner or the install icon in the browser address bar.</li>
-            <li><strong>iOS (Safari):</strong> Tap the <strong>Share</strong> button at the bottom of Safari &rarr; select <strong>"Add to Home Screen"</strong>.</li>
-            <li><strong>Android (Chrome):</strong> Tap the <strong>"Add to Screen"</strong> button or Chrome menu &rarr; <strong>"Install app"</strong>.</li>
-          </ul>
-          <p className="text-emerald-700 text-[11px] font-medium pt-1">
-            Once installed, the app works 100% offline without any internet connection. You can open it on flights, train journeys, or remote locations with zero network bars.
-          </p>
-        </div>
-
-        {/* Family Member Operations Section */}
-        <div className="p-4 rounded-xl bg-indigo-50/60 border border-indigo-200 space-y-2 text-xs">
-          <div className="flex items-center gap-2 font-bold text-indigo-900">
-            <Layers className="w-4 h-4 text-indigo-600" />
-            <span>Adding, Managing & Deleting Family Members</span>
-          </div>
-          <p className="text-indigo-800 leading-relaxed text-[11px]">
-            Indian wealth is frequently managed at the family or Hindu Undivided Family (HUF) level while maintaining individual PAN separation for tax return filings:
-          </p>
-          <ul className="list-disc pl-5 space-y-1 text-indigo-800 text-[11px]">
-            <li>Click <strong>"Family"</strong> in the top header or banner to open the Family Profile Manager.</li>
-            <li>Click <strong>"Add Family Member"</strong> to register a spouse, child, parent, sibling, or HUF account with their dedicated PAN, broker, and demat account number.</li>
-            <li>To delete a member, click the trash icon next to their profile. A confirmation modal will warn you if transactions are assigned to that profile before removing.</li>
-            <li>Switch between individual family members via the header selector to view their isolated tax reports, or click <strong>"Consolidated View"</strong> to inspect combined net worth.</li>
-          </ul>
-        </div>
-      </div>
-
-      {/* Chapter 1: The Indian FIFO Peeling Algorithm */}
-      <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-2xs space-y-4">
-        <div className="flex items-center gap-2 text-zinc-900">
-          <Calculator className="w-5 h-5 text-indigo-600" />
-          <h2 className="text-base font-bold tracking-tight">
-            1. First-In, First-Out (FIFO) Tax Engine & Holding Boundary
-          </h2>
-        </div>
-
-        <p className="text-xs text-zinc-600 leading-relaxed">
-          Under the Indian Income Tax Act, capital gains on equity shares and equity-oriented mutual funds must be calculated using the First-In, First-Out (FIFO) methodology. When shares are sold from a demat account holding multiple purchase tranches, the shares acquired first are deemed to be sold first.
-        </p>
-
-        {/* Visual Walkthrough Box */}
-        <div className="bg-zinc-50 p-4 rounded-xl border border-zinc-200 space-y-3">
-          <span className="text-xs font-semibold text-zinc-900 block">
-            Example: Partial Sale Lot Peeling
-          </span>
-          <div className="space-y-2 text-xs font-mono">
-            <div className="p-2.5 rounded-lg bg-white border border-zinc-200 flex items-center justify-between">
-              <div>
-                <span className="text-zinc-400">Tranche 1 (10 Jan 2023):</span> Buy 50 shares @ ₹2,000 + ₹140 charges
-              </div>
-              <span className="text-emerald-700 font-semibold">Net: ₹2,002.80/sh</span>
-            </div>
-            <div className="p-2.5 rounded-lg bg-white border border-zinc-200 flex items-center justify-between">
-              <div>
-                <span className="text-zinc-400">Tranche 2 (15 Nov 2024):</span> Buy 50 shares @ ₹2,400 + ₹170 charges
-              </div>
-              <span className="text-emerald-700 font-semibold">Net: ₹2,403.40/sh</span>
-            </div>
-            <div className="p-2.5 rounded-lg bg-indigo-50/60 border border-indigo-200 flex items-center justify-between text-indigo-950">
-              <div>
-                <span className="text-indigo-600 font-bold">Action (10 Mar 2026):</span> Sell 70 shares @ ₹2,800
-              </div>
-              <span className="font-bold">Peels across 2 lots</span>
-            </div>
-          </div>
-
-          <div className="text-xs text-zinc-600 space-y-1 pt-1">
-            <p className="font-medium text-zinc-800">How the Engine Peels Tranches:</p>
-            <ol className="list-decimal pl-5 space-y-1">
-              <li>
-                <strong>Lot 1 Peeling (50 shares):</strong> All 50 shares from Tranche 1 (acquired 10 Jan 2023) are liquidated. Holding duration = 1,155 days (&ge; 365 days) &rarr; <strong className="text-indigo-700 font-mono">LTCG Flagged (Sec 112A)</strong>.
-              </li>
-              <li>
-                <strong>Lot 2 Partial Peeling (20 shares):</strong> The remaining 20 shares are peeled from Tranche 2 (acquired 15 Nov 2024). Holding duration = 480 days (&ge; 365 days) &rarr; <strong className="text-indigo-700 font-mono">LTCG Flagged</strong>. Tranche 2 now retains 30 open shares.
-              </li>
-            </ol>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-          <div className="p-3 rounded-xl border border-zinc-200 bg-zinc-50/50">
-            <span className="text-xs font-bold text-zinc-900 block">Short-Term Capital Gains (STCG)</span>
-            <span className="text-[10px] font-mono text-amber-700 font-bold">Held &lt; 365 Days • 20% Tax</span>
-            <p className="text-xs text-zinc-500 mt-1">
-              Taxed at a flat rate of 20% under Section 111A (updated per Union Budget / Finance Act 2024).
-            </p>
-          </div>
-          <div className="p-3 rounded-xl border border-zinc-200 bg-zinc-50/50">
-            <span className="text-xs font-bold text-zinc-900 block">Long-Term Capital Gains (LTCG)</span>
-            <span className="text-[10px] font-mono text-indigo-700 font-bold">Held &ge; 365 Days • 12.5% Tax</span>
-            <p className="text-xs text-zinc-500 mt-1">
-              Taxed at 12.5% under Section 112A for aggregate gains exceeding the ₹1.25 Lakh annual household exemption.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Chapter 2: WAC (Weighted Average Cost) vs FIFO */}
-      <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-2xs space-y-4">
-        <div className="flex items-center gap-2 text-zinc-900">
-          <Layers className="w-5 h-5 text-emerald-600" />
-          <h2 className="text-base font-bold tracking-tight">
-            2. Weighted Average Cost (WAC) vs FIFO Costing Methodology
-          </h2>
-        </div>
-
-        <p className="text-xs text-zinc-600 leading-relaxed">
-          While the Indian Tax Department mandates FIFO for computing taxable capital gains upon sale, modern portfolio management platforms (Zerodha Kite, Navexa, Sharesight) utilize <strong>Weighted Average Cost (WAC)</strong> to track ongoing unrealized portfolio returns and inventory pricing.
-        </p>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border border-zinc-200 rounded-lg">
-            <thead className="bg-zinc-50 text-zinc-700 font-semibold border-b border-zinc-200">
-              <tr>
-                <th className="p-3">Attribute</th>
-                <th className="p-3">Weighted Average Cost (WAC)</th>
-                <th className="p-3">FIFO Cost Basis</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-200 font-sans">
-              <tr>
-                <td className="p-3 font-medium text-zinc-900">Primary Purpose</td>
-                <td className="p-3 text-zinc-600">Inventory valuation & true blended investment return</td>
-                <td className="p-3 text-zinc-600">Tax audit compliance & capital gains calculation</td>
-              </tr>
-              <tr>
-                <td className="p-3 font-medium text-zinc-900">Formula upon Buy</td>
-                <td className="p-3 font-mono text-zinc-600">
-                  (Old Qty &times; Old WAC + New Cost) / (Old Qty + New Qty)
-                </td>
-                <td className="p-3 font-mono text-zinc-600">Creates a new distinct buy lot tranche</td>
-              </tr>
-              <tr>
-                <td className="p-3 font-medium text-zinc-900">Formula upon Sell</td>
-                <td className="p-3 text-zinc-600">Unit cost stays constant; quantity reduces</td>
-                <td className="p-3 text-zinc-600">Earliest tranches are peeled first</td>
-              </tr>
-              <tr>
-                <td className="p-3 font-medium text-zinc-900">Switching Lenses</td>
-                <td colSpan={2} className="p-3 text-emerald-700 font-medium">
-                  Use the global toggle in the top header or Holdings tab to switch between both views instantly.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Chapter 3: Corporate Actions Workflows */}
-      <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-2xs space-y-4">
-        <div className="flex items-center gap-2 text-zinc-900">
-          <Sparkles className="w-5 h-5 text-purple-600" />
-          <h2 className="text-base font-bold tracking-tight">
-            3. Corporate Action Workflows & Cost Rebasing
-          </h2>
-        </div>
-
-        <div className="space-y-4 text-xs">
-          {/* Bonus */}
-          <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 space-y-2">
-            <span className="font-bold text-zinc-900 text-sm flex items-center gap-1.5">
-              <span>Bonus Issue (e.g. 1:1, 4:1)</span>
-              <span className="font-mono text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.2 rounded font-semibold">
-                Section 55
+            {/* Friction breakdown */}
+            <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2">
+              <span className="font-bold text-zinc-900 text-xs block">
+                Indian Statutory Charges Calculated Automatically on Orders:
               </span>
-            </span>
-            <p className="text-zinc-600">
-              Per Section 55 of the Indian Income Tax Act, bonus shares allotted on or after 1 April 2001 have a <strong>cost of acquisition of ₹0</strong>.
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
+                <div className="p-2.5 bg-white rounded-lg border border-zinc-200">
+                  <span className="font-bold text-zinc-900 block">STT / CTT</span>
+                  <span className="text-zinc-500 text-[11px]">0.1% on Equity Delivery (Buy & Sell); 0.001% on MF redemption</span>
+                </div>
+                <div className="p-2.5 bg-white rounded-lg border border-zinc-200">
+                  <span className="font-bold text-zinc-900 block">Stamp Duty</span>
+                  <span className="text-zinc-500 text-[11px]">0.015% on Equity Buy; 0.005% on Mutual Fund purchase</span>
+                </div>
+                <div className="p-2.5 bg-white rounded-lg border border-zinc-200">
+                  <span className="font-bold text-zinc-900 block">Exchange Charges</span>
+                  <span className="text-zinc-500 text-[11px]">NSE 0.00345% / BSE 0.00375% on total turnover</span>
+                </div>
+                <div className="p-2.5 bg-white rounded-lg border border-zinc-200">
+                  <span className="font-bold text-zinc-900 block">SEBI Fee + GST</span>
+                  <span className="text-zinc-500 text-[11px]">₹10/crore SEBI turnover fee + 18% GST on exchange and broker charges</span>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-xs text-zinc-600">
+              When logging a trade, checking <strong>"Route from / to Cash Balance"</strong> automatically debits or credits the cash ledger of the assigned family profile, ensuring cash reserves reflect real bank demat movements.
             </p>
-            <div className="p-2.5 bg-white border border-zinc-200 rounded-lg font-mono text-zinc-700">
-              Example 1:1 Bonus on 50 CDSL shares @ ₹1,120:
-              <br />
-              &bull; 50 new bonus shares are allotted at ₹0 cost on record date.
-              <br />
-              &bull; Holding count increases to 100 shares. Total invested cost remains ₹56,000.
-              <br />
-              &bull; Blended WAC drops from ₹1,120 to ₹560 per share, preserving tax neutrality until sale.
+          </div>
+        </div>
+      )}
+
+      {/* CHAPTER 5: Capital Gains Tax Engine (Finance Act 2024) */}
+      {(activeSection === 'all' || activeSection === 'tax_engine') && (
+        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-zinc-200 shadow-2xs space-y-5">
+          <div className="flex items-center gap-2.5 text-zinc-900">
+            <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-800 flex items-center justify-center font-bold text-sm">
+              <Calculator className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold tracking-tight">
+                Tab 4: Indian Capital Gains Tax Engine (Finance Act 2024)
+              </h2>
+              <span className="text-xs text-zinc-500">Union Budget 2024 compliance: 20% STCG, 12.5% LTCG & ₹1.25L annual exemption</span>
             </div>
           </div>
 
-          {/* Stock Split */}
-          <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 space-y-2">
-            <span className="font-bold text-zinc-900 text-sm flex items-center gap-1.5">
-              <span>Stock Split (e.g. 1:2, 1:10)</span>
-              <span className="font-mono text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.2 rounded font-semibold">
-                Face Value Reduction
+          <div className="space-y-4 text-xs sm:text-sm text-zinc-600 leading-relaxed">
+            <p>
+              Capital gains calculations strictly reflect the amendments introduced in the <strong>Finance (No. 2) Act 2024</strong>:
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/60 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-amber-950 text-xs">Section 111A — Short-Term Capital Gains (STCG)</span>
+                  <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-amber-200 text-amber-900">20% Flat</span>
+                </div>
+                <p className="text-xs text-amber-900 leading-relaxed">
+                  Applies to listed equity shares and equity mutual funds sold within a holding duration of <strong>less than 365 days</strong>. Increased from 15% to 20% under the revised tax code.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl border border-indigo-200 bg-indigo-50/60 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-indigo-950 text-xs">Section 112A — Long-Term Capital Gains (LTCG)</span>
+                  <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-indigo-200 text-indigo-900">12.5% &gt; ₹1.25L</span>
+                </div>
+                <p className="text-xs text-indigo-900 leading-relaxed">
+                  Applies to listed equity assets held for <strong>365 days or more</strong>. The annual tax-free exemption limit is set at <strong>₹1,25,000 per financial year</strong>. Gains exceeding ₹1.25 Lakh are taxed at 12.5% (previously 10%).
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-200 space-y-2">
+              <span className="font-bold text-zinc-900 text-xs block">Realized Tax Lots Audit Table:</span>
+              <p className="text-xs text-zinc-600">
+                Every completed sale is mapped to its exact purchase tranche date, displaying holding days, STCG/LTCG classification, net proceeds, net cost, realized gain/loss, and precise tax liability.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CHAPTER 6: Dalal Street Catalyst & Earnings Calendar */}
+      {(activeSection === 'all' || activeSection === 'calendar') && (
+        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-zinc-200 shadow-2xs space-y-5">
+          <div className="flex items-center gap-2.5 text-zinc-900">
+            <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-800 flex items-center justify-center font-bold text-sm">
+              <Calendar className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold tracking-tight">
+                Tab 5: Dalal Street Catalyst & Earnings Calendar
+              </h2>
+              <span className="text-xs text-zinc-500">Quarterly results, RBI MPC policy, monthly F&O expiry, and AMFI rebalances</span>
+            </div>
+          </div>
+
+          <div className="space-y-4 text-xs sm:text-sm text-zinc-600 leading-relaxed">
+            <p>
+              The <strong>Catalyst Calendar</strong> keeps you ahead of major market-moving dates in Indian equity markets:
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+              <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+                <span className="font-bold text-zinc-900 block">Quarterly Results</span>
+                <span className="text-zinc-500 text-[11px]">Board concalls, interim dividends, and guidance releases for held scrips (TCS, Infosys, HDFC Bank, Reliance).</span>
+              </div>
+              <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+                <span className="font-bold text-zinc-900 block">RBI MPC Policy</span>
+                <span className="text-zinc-500 text-[11px]">Bi-monthly monetary policy announcements, repo rate verdicts, and CPI inflation projections.</span>
+              </div>
+              <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+                <span className="font-bold text-zinc-900 block">F&O Expiries</span>
+                <span className="text-zinc-500 text-[11px]">Last Thursday monthly settlement dates for NSE/BSE Nifty and single-stock derivative contracts.</span>
+              </div>
+              <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+                <span className="font-bold text-zinc-900 block">BSE/NSE Holidays</span>
+                <span className="text-zinc-500 text-[11px]">Official exchange closure dates including Diwali Muhurat trading, Holi, Eid, and Independence Day.</span>
+              </div>
+            </div>
+
+            <p className="text-xs text-zinc-600">
+              Features include <strong>"My Holdings Only"</strong> filter, interactive reminder alert toggles, countdown badges (Today, Tomorrow, In X days/weeks), and custom event creation.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* CHAPTER 7: Gemini 3.8 Flash AI Co-Pilot Suite */}
+      {(activeSection === 'all' || activeSection === 'ai_copilot') && (
+        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-zinc-200 shadow-2xs space-y-5">
+          <div className="flex items-center gap-2.5 text-zinc-900">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-2xs">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold tracking-tight">
+                Tab 6: Gemini 3.8 Flash AI Co-Pilot Suite
+              </h2>
+              <span className="text-xs text-zinc-500">Zero-regex CAS statement ingestion, mutual fund overlap audit, and tax harvester</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm">
+            {/* 1. CAS & Trade Ingest */}
+            <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/60 space-y-2">
+              <div className="flex items-center gap-2 font-bold text-zinc-900">
+                <span className="w-5 h-5 rounded bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px]">1</span>
+                <span>CAS & Broker Statement Parser</span>
+              </div>
+              <p className="text-xs text-zinc-600 leading-relaxed">
+                Paste raw unstructured text from your NSDL/CDSL monthly CAS statements or Zerodha/Groww/Upstox tradebooks. Gemini extracts symbols, quantities, and buy prices with zero brittle regex patterns, and imports them directly into your active profile.
+              </p>
+            </div>
+
+            {/* 2. Overlap Audit */}
+            <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/60 space-y-2">
+              <div className="flex items-center gap-2 font-bold text-zinc-900">
+                <span className="w-5 h-5 rounded bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px]">2</span>
+                <span>Mutual Fund & Equity Overlap Audit</span>
+              </div>
+              <p className="text-xs text-zinc-600 leading-relaxed">
+                Performs look-through analysis across your direct stock holdings and top mutual funds (Parag Parikh Flexi Cap, Mirae Asset Large Cap, Quant Small Cap) to detect hidden concentration risks and duplicate stock weights.
+              </p>
+            </div>
+
+            {/* 3. Earnings Synthesizer */}
+            <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/60 space-y-2">
+              <div className="flex items-center gap-2 font-bold text-zinc-900">
+                <span className="w-5 h-5 rounded bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px]">3</span>
+                <span>Earnings & Concall Synthesizer</span>
+              </div>
+              <p className="text-xs text-zinc-600 leading-relaxed">
+                Generates instant executive summaries of quarterly results, margin expansions, management guidance, and deal wins for held companies.
+              </p>
+            </div>
+
+            {/* 4. Tax-Loss Harvester */}
+            <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/60 space-y-2">
+              <div className="flex items-center gap-2 font-bold text-zinc-900">
+                <span className="w-5 h-5 rounded bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px]">4</span>
+                <span>Tax-Loss Harvesting Optimizer</span>
+              </div>
+              <p className="text-xs text-zinc-600 leading-relaxed">
+                Scans open positions with unrealized losses to calculate exact tax-harvesting sale orders, helping you offset realized STCG/LTCG liabilities before the March 31st fiscal year close.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CHAPTER 8: Corporate Actions & Rebasing */}
+      {(activeSection === 'all' || activeSection === 'corporate_actions') && (
+        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-zinc-200 shadow-2xs space-y-5">
+          <div className="flex items-center gap-2.5 text-zinc-900">
+            <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-sm">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold tracking-tight">
+                Chapter 8: Corporate Actions Workflows & Cost Rebasing
+              </h2>
+              <span className="text-xs text-zinc-500">Section 55 bonus issue rules, stock split ratio adjustments, and demergers</span>
+            </div>
+          </div>
+
+          <div className="space-y-4 text-xs sm:text-sm text-zinc-600 leading-relaxed">
+            {/* Bonus */}
+            <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 space-y-2">
+              <span className="font-bold text-zinc-900 text-sm flex items-center gap-2">
+                <span>Bonus Issue (e.g. 1:1, 4:1)</span>
+                <span className="text-[10px] font-mono bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-bold">
+                  Section 55 Income Tax Act
+                </span>
               </span>
-            </span>
-            <p className="text-zinc-600">
-              When a company splits its face value (e.g., from ₹10 to ₹2 in a 1:5 split), every existing share splits into 5 shares. The unit cost of every prior buy tranche divides by 5, and the quantity multiplies by 5. The original acquisition date is preserved.
-            </p>
+              <p className="text-xs text-zinc-600">
+                Bonus shares allotted have an statutory <strong>acquisition cost of ₹0</strong>. The system records bonus shares as a distinct zero-cost lot while reducing the blended WAC across your holding, preserving tax neutrality until redemption.
+              </p>
+            </div>
+
+            {/* Split */}
+            <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 space-y-2">
+              <span className="font-bold text-zinc-900 text-sm flex items-center gap-2">
+                <span>Stock Split (e.g. 1:2, 1:5, 1:10)</span>
+                <span className="text-[10px] font-mono bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-bold">
+                  Face Value Division
+                </span>
+              </span>
+              <p className="text-xs text-zinc-600">
+                In a 1:2 split, the quantity of every existing buy lot doubles while the net purchase price per share is halved. Original purchase dates and LTCG/STCG holding periods are strictly preserved.
+              </p>
+            </div>
+
+            {/* Demerger */}
+            <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 space-y-2">
+              <span className="font-bold text-zinc-900 text-sm flex items-center gap-2">
+                <span>Demerger Cost Apportionment</span>
+                <span className="text-[10px] font-mono bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold">
+                  Section 49(2C)
+                </span>
+              </span>
+              <p className="text-xs text-zinc-600">
+                When a business demerges (e.g., Jio Financial Services from Reliance), original purchase costs are apportioned between parent and resulting entity based on net book asset ratios.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CHAPTER 9: Data Backups, Multi-Format Exports & Audit Reports */}
+      {(activeSection === 'all' || activeSection === 'exports_sync') && (
+        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-zinc-200 shadow-2xs space-y-5">
+          <div className="flex items-center gap-2.5 text-zinc-900">
+            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-sm">
+              <Download className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold tracking-tight">
+                Chapter 9: Backups, Multi-Format Exports & Printable Valuation Audit
+              </h2>
+              <span className="text-xs text-zinc-500">CSV data exports, JSON database backups, and standalone HTML print reports</span>
+            </div>
           </div>
 
-          {/* Dividends */}
-          <div className="p-4 rounded-xl border border-zinc-200 bg-zinc-50/50 space-y-2">
-            <span className="font-bold text-zinc-900 text-sm">Cash Dividends</span>
-            <p className="text-zinc-600">
-              Dividends paid by Indian corporates are credited directly to your cash ledger. Logging a dividend records income without altering the cost basis or share count of your open holdings.
-            </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200 space-y-1">
+              <span className="font-bold text-zinc-900 block">Holdings CSV</span>
+              <p className="text-zinc-500 text-[11px]">Symbol, company name, asset type, sector, market cap, quantity, WAC price, FIFO price, CMP, and unrealized P&L.</p>
+            </div>
+            <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200 space-y-1">
+              <span className="font-bold text-zinc-900 block">Ledger CSV</span>
+              <p className="text-zinc-500 text-[11px]">Full trade audit trail including trade type, execution date, quantity, price, statutory charges, and notes.</p>
+            </div>
+            <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200 space-y-1">
+              <span className="font-bold text-zinc-900 block">Tax Statement CSV</span>
+              <p className="text-zinc-500 text-[11px]">Realized capital gains lots with purchase date, sale date, holding days, STCG/LTCG tag, and tax liability.</p>
+            </div>
+            <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200 space-y-1">
+              <span className="font-bold text-zinc-900 block">Printable HTML Report</span>
+              <p className="text-zinc-500 text-[11px]">Self-contained, formal Chartered Accountant audit printout complete with charts, demat summaries, and signature block.</p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Chapter 4: Offline Price Engine & Bulk Text Format */}
-      <div className="bg-white p-6 rounded-2xl border border-zinc-200 shadow-2xs space-y-4">
-        <div className="flex items-center gap-2 text-zinc-900">
-          <FileCode className="w-5 h-5 text-zinc-700" />
-          <h2 className="text-base font-bold tracking-tight">
-            4. Offline Pricing Engine (CSV / Bulk Text Format)
-          </h2>
+      {/* CHAPTER 10: Display Modes, Mobile Layout & PWA Offline Installation */}
+      {(activeSection === 'all' || activeSection === 'view_modes') && (
+        <div className="bg-white p-6 sm:p-7 rounded-2xl border border-zinc-200 shadow-2xs space-y-5">
+          <div className="flex items-center gap-2.5 text-zinc-900">
+            <div className="w-8 h-8 rounded-lg bg-zinc-100 text-zinc-800 flex items-center justify-center font-bold text-sm">
+              <Settings className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold tracking-tight">
+                Chapter 10: Display View Modes & Progressive Web App (PWA) Offline Use
+              </h2>
+              <span className="text-xs text-zinc-500">Auto-responsive, mobile phone view, desktop grid, and offline installation</span>
+            </div>
+          </div>
+
+          <div className="space-y-4 text-xs sm:text-sm text-zinc-600 leading-relaxed">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div className="p-3.5 bg-zinc-50 rounded-xl border border-zinc-200 space-y-1">
+                <span className="font-bold text-zinc-900 block">Auto (Responsive)</span>
+                <p className="text-zinc-500 text-[11px]">Dynamically adapts layout based on screen width (desktop monitors, tablets, and smartphones).</p>
+              </div>
+              <div className="p-3.5 bg-zinc-50 rounded-xl border border-zinc-200 space-y-1">
+                <span className="font-bold text-zinc-900 block">Phone View (Mobile)</span>
+                <p className="text-zinc-500 text-[11px]">Forces mobile-friendly card stacks, bottom thumb-nav bar, and enlarged touch targets even on large screens.</p>
+              </div>
+              <div className="p-3.5 bg-zinc-50 rounded-xl border border-zinc-200 space-y-1">
+                <span className="font-bold text-zinc-900 block">Desktop (Full Grid)</span>
+                <p className="text-zinc-500 text-[11px]">Expands maximum columns and full data table grids for wide multi-monitor setups.</p>
+              </div>
+            </div>
+
+            <div className="p-4 bg-emerald-50/60 rounded-xl border border-emerald-200 space-y-2 text-xs">
+              <div className="flex items-center gap-2 font-bold text-emerald-900">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>How to Install as a Native App (PWA):</span>
+              </div>
+              <ul className="list-disc pl-5 space-y-1 text-emerald-800 text-[11px]">
+                <li><strong>Chrome / Edge (Desktop):</strong> Click "Install App" in the top banner or the browser address bar icon.</li>
+                <li><strong>Apple iPhone / iPad (Safari):</strong> Tap the <em>Share</em> button at the bottom of Safari &rarr; select <strong>"Add to Home Screen"</strong>.</li>
+                <li><strong>Android (Chrome):</strong> Tap the <em>Menu (3 dots)</em> &rarr; <strong>"Install app"</strong> or <strong>"Add to Home Screen"</strong>.</li>
+              </ul>
+            </div>
+          </div>
         </div>
-
-        <p className="text-xs text-zinc-600 leading-relaxed">
-          Because this application never communicates with external live stock quote servers, you can update valuations across your entire portfolio in one second using the "Price Manager". Simply paste a comma- or tab-separated list:
-        </p>
-
-        <div className="p-3 bg-zinc-900 text-emerald-400 font-mono text-xs rounded-xl overflow-x-auto">
-          RELIANCE,3050.00
-          <br />
-          TCS,4320.50
-          <br />
-          HDFCBANK,1720.00
-          <br />
-          CDSL,1650.00
-          <br />
-          PPFAS_FLEXI,82.10
-        </div>
-
-        <p className="text-xs text-zinc-500">
-          Clicking "Apply Bulk Price Updates" updates Current Market Prices (CMP) immediately and recalculates unrealized returns, day changes, and net worth across all family member portfolios.
-        </p>
-      </div>
+      )}
     </div>
   );
 };
