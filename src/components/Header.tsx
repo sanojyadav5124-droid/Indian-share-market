@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Briefcase,
   Users,
@@ -9,6 +9,9 @@ import {
   RefreshCw,
   Sparkles,
   UserPlus,
+  Download,
+  Radio,
+  CheckCircle2,
 } from 'lucide-react';
 import { usePortfolio } from '../context/PortfolioContext';
 import { ProfileId } from '../types';
@@ -28,8 +31,25 @@ export const Header: React.FC<HeaderProps> = ({ onOpenBackupModal }) => {
     setIsPricingModalOpen,
     setIsAddTxModalOpen,
     setIsFamilyModalOpen,
+    setIsExportModalOpen,
     marketPrices,
+    fetchLiveMarketPrices,
+    isFetchingLivePrices,
+    lastLiveSyncTime,
   } = usePortfolio();
+
+  const [syncToast, setSyncToast] = useState<string | null>(null);
+
+  const handleLiveSync = async () => {
+    const res = await fetchLiveMarketPrices();
+    if (res.updatedCount > 0) {
+      setSyncToast(`Updated ${res.updatedCount} scrips`);
+      setTimeout(() => setSyncToast(null), 3000);
+    } else if (res.errors && res.errors.length > 0) {
+      setSyncToast(`Sync note: ${res.errors[0]}`);
+      setTimeout(() => setSyncToast(null), 3000);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-zinc-200">
@@ -49,9 +69,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenBackupModal }) => {
                   Local-First
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-zinc-500">
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Offline Engine • {marketPrices.length} Scrips Tracked</span>
+              <div className="flex items-center gap-2 text-xs text-zinc-500">
+                <span className="inline-flex items-center gap-1">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>{marketPrices.length} Scrips Tracked</span>
+                </span>
+                {lastLiveSyncTime && (
+                  <span className="hidden sm:inline-block text-[11px] text-zinc-400 font-mono">
+                    • Live: {lastLiveSyncTime}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -115,17 +142,52 @@ export const Header: React.FC<HeaderProps> = ({ onOpenBackupModal }) => {
             </button>
           </div>
 
-          {/* Right Actions: Pricing Manager & Add Transaction */}
+          {/* Right Actions: Live Sync, Export, Pricing, Add Transaction */}
           <div className="flex items-center gap-2">
             {/* PWA Install / Add to Home Screen Button */}
             <PWAInstallButton variant="header" />
+
+            {/* Live Yahoo Finance Market Price Sync Button */}
+            <button
+              id="header-live-sync-btn"
+              onClick={handleLiveSync}
+              disabled={isFetchingLivePrices}
+              className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-medium border transition-all ${
+                isFetchingLivePrices
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                  : 'bg-zinc-50 hover:bg-emerald-50/80 text-zinc-700 hover:text-emerald-800 border-zinc-200 hover:border-emerald-300'
+              }`}
+              title="Fetch live market prices via Yahoo Finance API (NSE/BSE)"
+            >
+              <RefreshCw
+                className={`w-3.5 h-3.5 ${
+                  isFetchingLivePrices
+                    ? 'animate-spin text-emerald-600'
+                    : 'text-emerald-600'
+                }`}
+              />
+              <span className="hidden sm:inline font-semibold">
+                {isFetchingLivePrices ? 'Syncing...' : 'Live Prices'}
+              </span>
+            </button>
+
+            {/* Portfolio Export Button */}
+            <button
+              id="header-export-btn"
+              onClick={() => setIsExportModalOpen(true)}
+              className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-semibold bg-zinc-50 hover:bg-zinc-100 text-zinc-800 border border-zinc-200 transition-colors shadow-2xs"
+              title="Export Portfolio to CSV, JSON Backup, or Printable Report"
+            >
+              <Download className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Export</span>
+            </button>
 
             {/* Backup / Sync Button */}
             {onOpenBackupModal && (
               <button
                 id="header-backup-btn"
                 onClick={onOpenBackupModal}
-                className="hidden sm:flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-medium bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200 transition-colors"
+                className="hidden xl:flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-medium bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200 transition-colors"
                 title="Backup & Restore Data"
               >
                 <Database className="w-3.5 h-3.5 text-emerald-600" />
@@ -164,14 +226,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenBackupModal }) => {
               </button>
             </div>
 
-            {/* Offline Pricing Engine Button */}
+            {/* Manual Pricing Engine Modal Trigger */}
             <button
               id="open-pricing-manager-btn"
               onClick={() => setIsPricingModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200 transition-colors shadow-2xs"
+              className="hidden md:flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-medium bg-zinc-50 hover:bg-zinc-100 text-zinc-700 border border-zinc-200 transition-colors shadow-2xs"
+              title="Manual price override & batch CSV price update"
             >
-              <RefreshCw className="w-3.5 h-3.5 text-zinc-600" />
-              <span className="hidden sm:inline">Prices</span>
+              <Layers className="w-3.5 h-3.5 text-zinc-500" />
+              <span>Overrides</span>
             </button>
 
             {/* Log Trade CTA */}
@@ -181,11 +244,21 @@ export const Header: React.FC<HeaderProps> = ({ onOpenBackupModal }) => {
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-zinc-900 hover:bg-zinc-800 text-white shadow-sm transition-all"
             >
               <PlusCircle className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Log Trade</span>
+              <span className="hidden sm:inline">Log Trade</span>
+              <span className="sm:hidden">Trade</span>
             </button>
           </div>
         </div>
+
+        {/* Sync feedback toast */}
+        {syncToast && (
+          <div className="absolute top-16 right-6 bg-zinc-900 text-white text-xs px-3 py-1.5 rounded-lg shadow-lg border border-zinc-800 flex items-center gap-2 animate-in fade-in slide-in-from-top-2 z-50">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            <span>{syncToast}</span>
+          </div>
+        )}
       </div>
     </header>
   );
 };
+

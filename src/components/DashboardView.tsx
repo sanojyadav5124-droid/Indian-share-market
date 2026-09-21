@@ -37,7 +37,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenBackupModal 
     setIsAddTxModalOpen,
     setIsPricingModalOpen,
     setIsFamilyModalOpen,
+    setIsExportModalOpen,
     exportBackupJSON,
+    fetchLiveMarketPrices,
+    isFetchingLivePrices,
+    lastLiveSyncTime,
     transactions,
   } = usePortfolio();
 
@@ -101,18 +105,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenBackupModal 
 
         <div className="flex flex-wrap items-center gap-2">
           <button
-            id="dash-add-trade-btn"
-            onClick={() => setIsAddTxModalOpen(true)}
-            className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-500 hover:bg-emerald-400 text-zinc-950 transition-colors shadow-xs"
+            id="dash-live-sync-btn"
+            onClick={() => fetchLiveMarketPrices()}
+            disabled={isFetchingLivePrices}
+            className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-500 hover:bg-emerald-400 text-zinc-950 transition-colors shadow-xs flex items-center gap-1.5"
+            title="Fetch real-time stock prices from Yahoo Finance"
           >
-            + New Order
+            <span className={isFetchingLivePrices ? 'animate-spin inline-block' : ''}>⟳</span>
+            <span>{isFetchingLivePrices ? 'Syncing...' : 'Live Sync'}</span>
+          </button>
+          <button
+            id="dash-export-btn"
+            onClick={() => setIsExportModalOpen(true)}
+            className="px-3.5 py-2 rounded-xl text-xs font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 transition-colors flex items-center gap-1.5"
+            title="Export Portfolio to CSV, JSON, or PDF"
+          >
+            <Download className="w-3.5 h-3.5 text-indigo-400" />
+            <span>Export</span>
           </button>
           <button
             id="dash-price-mgr-btn"
             onClick={() => setIsPricingModalOpen(true)}
             className="px-3.5 py-2 rounded-xl text-xs font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 transition-colors"
           >
-            Update Prices
+            Prices
           </button>
           <button
             id="dash-backup-btn"
@@ -121,7 +137,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenBackupModal 
             title="Import/Export Backup & Sync"
           >
             <Database className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Backup & Sync</span>
+            <span>Backup</span>
           </button>
         </div>
       </div>

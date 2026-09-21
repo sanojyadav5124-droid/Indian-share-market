@@ -72,12 +72,20 @@ interface PortfolioContextType {
   deleteProfile: (id: ProfileId) => { success: boolean; message?: string };
   updateProfile: (profile: FamilyProfile) => void;
 
+  // Live Price Sync (Yahoo Finance)
+  fetchLiveMarketPrices: (targetSymbols?: string[]) => Promise<{ updatedCount: number; errors: string[] }>;
+  isFetchingLivePrices: boolean;
+  lastLiveSyncTime: string | null;
+  livePriceError: string | null;
+
   // Import/Export
   exportBackupJSON: () => void;
   importBackupJSON: (jsonString: string) => boolean;
   importBackupFromFile: (file: File) => Promise<{ success: boolean; message: string }>;
   exportHoldingsCSV: () => void;
+  exportTransactionsCSV: () => void;
   exportTaxCSV: () => void;
+  exportFullPortfolioHTMLReport: () => void;
 
   // UI Modals
   isPricingModalOpen: boolean;
@@ -90,6 +98,8 @@ interface PortfolioContextType {
   setIsFamilyModalOpen: (open: boolean) => void;
   isBackupModalOpen: boolean;
   setIsBackupModalOpen: (open: boolean) => void;
+  isExportModalOpen: boolean;
+  setIsExportModalOpen: (open: boolean) => void;
   selectedHoldingForLots: HoldingItem | null;
   setSelectedHoldingForLots: (holding: HoldingItem | null) => void;
 }
@@ -187,7 +197,19 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isAddStockModalOpen, setIsAddStockModalOpen] = useState(false);
   const [isFamilyModalOpen, setIsFamilyModalOpen] = useState(false);
   const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [selectedHoldingForLots, setSelectedHoldingForLots] = useState<HoldingItem | null>(null);
+
+  // Live Market Price State (Yahoo Finance)
+  const [isFetchingLivePrices, setIsFetchingLivePrices] = useState(false);
+  const [lastLiveSyncTime, setLastLiveSyncTime] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem(`${STORAGE_KEY}_last_sync_time`);
+    } catch {
+      return null;
+    }
+  });
+  const [livePriceError, setLivePriceError] = useState<string | null>(null);
 
   // Sync to localStorage
   useEffect(() => {
@@ -536,6 +558,75 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     localStorage.removeItem(`${STORAGE_KEY}_custom_stocks`);
   };
 
+  // Yahoo Finance Live Market Price Sync
+  const fetchLiveMarketPrices = async (
+    targetSymbols?: string[]
+  ): Promise<{ updatedCount: number; errors: string[] }> => {
+    setIsFetchingLivePrices(true);
+    setLivePriceError(null);
+    try {
+      const symbolsToFetch =
+        targetSymbols && targetSymbols.length > 0
+          ? targetSymbols
+          : marketPrices.map((p) => p.symbol);
+
+      const res = await fetch('/api/market-prices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbols: symbolsToFetch }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Server returned HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      if (data.success && Array.isArray(data.quotes) && data.quotes.length > 0) {
+        const quoteMap = new Map<string, any>(
+          data.quotes.map((q: any) => [q.symbol.toUpperCase(), q])
+        );
+
+        setMarketPrices((prev) =>
+          prev.map((p) => {
+            const q = quoteMap.get(p.symbol.toUpperCase());
+            if (q && typeof q.cmp === 'number' && q.cmp > 0) {
+              return {
+                ...p,
+                cmp: q.cmp,
+                previousClose: typeof q.previousClose === 'number' ? q.previousClose : p.cmp,
+                lastUpdated: q.lastUpdated || new Date().toISOString().replace('T', ' ').substring(0, 19),
+              };
+            }
+            return p;
+          })
+        );
+
+        const syncTimestamp = new Date().toLocaleTimeString('en-IN', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        });
+        setLastLiveSyncTime(syncTimestamp);
+        try {
+          localStorage.setItem(`${STORAGE_KEY}_last_sync_time`, syncTimestamp);
+        } catch (e) {}
+
+        return {
+          updatedCount: data.updatedCount || data.quotes.length,
+          errors: data.errors || [],
+        };
+      } else {
+        throw new Error(data.error || 'No live price quotes received from Yahoo Finance.');
+      }
+    } catch (err: any) {
+      const msg = err.message || 'Failed to fetch live quotes from Yahoo Finance';
+      setLivePriceError(msg);
+      return { updatedCount: 0, errors: [msg] };
+    } finally {
+      setIsFetchingLivePrices(false);
+    }
+  };
+
   // Export JSON
   const exportBackupJSON = () => {
     const payload = {
@@ -652,6 +743,67 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     URL.revokeObjectURL(url);
   };
 
+  const exportTransactionsCSV = () => {
+    const headers = [
+      'Transaction ID',
+      'Date',
+      'Family Profile',
+      'Type',
+      'Symbol',
+      'Security Name',
+      'Instrument',
+      'Sector',
+      'Market Cap',
+      'Quantity',
+      'Trade Price (INR)',
+      'Gross Trade Value (INR)',
+      'STT (INR)',
+      'Stamp Duty (INR)',
+      'Exchange & SEBI (INR)',
+      'GST & Brokerage (INR)',
+      'Total Charges (INR)',
+      'Net Settlement (INR)',
+      'Notes / Remarks',
+    ];
+
+    const rows = transactions.map((t) => {
+      const gross = (t.quantity || 0) * (t.price || 0);
+      const charges = t.charges?.total || 0;
+      const net = t.type === 'BUY' ? gross + charges : t.type === 'SELL' ? gross - charges : gross;
+      const profileObj = profiles.find((p) => p.id === t.profileId);
+      return [
+        `"${t.id}"`,
+        `"${t.date}"`,
+        `"${profileObj?.name || t.profileId}"`,
+        `"${t.type}"`,
+        `"${t.symbol}"`,
+        `"${t.name}"`,
+        `"${t.instrumentType}"`,
+        `"${t.sector || ''}"`,
+        `"${t.marketCap || ''}"`,
+        t.quantity,
+        t.price.toFixed(2),
+        gross.toFixed(2),
+        (t.charges?.stt || 0).toFixed(2),
+        (t.charges?.stampDuty || 0).toFixed(2),
+        (t.charges?.exchangeCharges || 0).toFixed(2),
+        (t.charges?.gstAndBrokerage || 0).toFixed(2),
+        charges.toFixed(2),
+        net.toFixed(2),
+        `"${(t.notes || '').replace(/"/g, '""')}"`,
+      ];
+    });
+
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Transactions_Ledger_${activeProfile}_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const exportTaxCSV = () => {
     const headers = [
       'Profile',
@@ -695,6 +847,133 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     URL.revokeObjectURL(url);
   };
 
+  const exportFullPortfolioHTMLReport = () => {
+    const now = new Date();
+    const dateFormatted = now.toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+    const profileLabel =
+      activeProfile === 'consolidated'
+        ? 'Consolidated Yadav Household Portfolio'
+        : profiles.find((p) => p.id === activeProfile)?.name || activeProfile;
+
+    const holdingsRowsHtml = holdings
+      .map(
+        (h) => `
+      <tr>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; font-weight: 600;">${h.symbol}</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0;">${h.name}</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: center;">${h.instrumentType}</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: right;">${h.totalQuantity}</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: right;">₹${h.wacPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: 600;">₹${h.cmp.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: right;">₹${h.investedValueWAC.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: 600;">₹${h.currentValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+        <td style="padding: 8px 10px; border-bottom: 1px solid #e2e8f0; text-align: right; color: ${h.unrealizedPnLWAC >= 0 ? '#059669' : '#dc2626'}; font-weight: 600;">
+          ${h.unrealizedPnLWAC >= 0 ? '+' : ''}₹${h.unrealizedPnLWAC.toLocaleString('en-IN', { maximumFractionDigits: 0 })} (${h.unrealizedPnLPercentWAC.toFixed(2)}%)
+        </td>
+      </tr>
+    `
+      )
+      .join('');
+
+    const htmlDoc = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <title>Portfolio Report - ${profileLabel}</title>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #0f172a; margin: 40px; }
+          .header { display: flex; justify-content: space-between; border-bottom: 2px solid #0f172a; padding-bottom: 15px; margin-bottom: 25px; }
+          .title { font-size: 24px; font-weight: bold; }
+          .subtitle { font-size: 14px; color: #64748b; margin-top: 4px; }
+          .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+          .metric-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 16px; }
+          .metric-label { font-size: 12px; color: #64748b; font-weight: 500; }
+          .metric-val { font-size: 20px; font-weight: bold; margin-top: 4px; }
+          table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 15px; }
+          th { background: #f1f5f9; padding: 10px; text-align: left; font-weight: 600; color: #334155; border-bottom: 2px solid #cbd5e1; }
+          @media print {
+            body { margin: 15mm 10mm; }
+            button { display: none !important; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="title">${profileLabel}</div>
+            <div class="subtitle">Executive Wealth & Holdings Statement • As of ${dateFormatted}</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 600; font-size: 15px;">SKYadav portfolio App</div>
+            <div style="font-size: 12px; color: #64748b;">Source: NSE/BSE & Local Demat Records</div>
+          </div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-box">
+            <div class="metric-label">Total Portfolio Net Worth</div>
+            <div class="metric-val" style="color: #059669;">₹${summary.totalNetWorth.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Invested Capital (WAC)</div>
+            <div class="metric-val">₹${summary.totalInvestedWAC.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Total Unrealized Gains</div>
+            <div class="metric-val" style="color: ${summary.totalUnrealizedPnLWAC >= 0 ? '#059669' : '#dc2626'};">
+              ${summary.totalUnrealizedPnLWAC >= 0 ? '+' : ''}₹${summary.totalUnrealizedPnLWAC.toLocaleString('en-IN', { maximumFractionDigits: 0 })} (${summary.totalUnrealizedPnLPercentWAC.toFixed(2)}%)
+            </div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Total Realized Gains (FY)</div>
+            <div class="metric-val" style="color: #4f46e5;">₹${summary.totalRealizedPnL.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
+          </div>
+        </div>
+
+        <h3 style="margin-top: 30px; margin-bottom: 10px; font-size: 16px;">Consolidated Security Holdings Inventory (${holdings.length} Scrips)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Symbol</th>
+              <th>Security Name</th>
+              <th style="text-align: center;">Type</th>
+              <th style="text-align: right;">Qty</th>
+              <th style="text-align: right;">Avg Cost</th>
+              <th style="text-align: right;">CMP</th>
+              <th style="text-align: right;">Invested</th>
+              <th style="text-align: right;">Current Value</th>
+              <th style="text-align: right;">Unrealized P&L</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${holdingsRowsHtml}
+          </tbody>
+        </table>
+
+        <div style="margin-top: 40px; padding-top: 15px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8;">
+          <div>Generated by SKYadav portfolio App • Strictly Confidential</div>
+          <div>Page 1 of 1</div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(htmlDoc);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+    }
+  };
+
   return (
     <PortfolioContext.Provider
       value={{
@@ -734,11 +1013,17 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         addProfile,
         deleteProfile,
         updateProfile,
+        fetchLiveMarketPrices,
+        isFetchingLivePrices,
+        lastLiveSyncTime,
+        livePriceError,
         exportBackupJSON,
         importBackupJSON,
         importBackupFromFile,
         exportHoldingsCSV,
+        exportTransactionsCSV,
         exportTaxCSV,
+        exportFullPortfolioHTMLReport,
         isPricingModalOpen,
         setIsPricingModalOpen,
         isAddTxModalOpen,
@@ -749,6 +1034,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setIsFamilyModalOpen,
         isBackupModalOpen,
         setIsBackupModalOpen,
+        isExportModalOpen,
+        setIsExportModalOpen,
         selectedHoldingForLots,
         setSelectedHoldingForLots,
       }}

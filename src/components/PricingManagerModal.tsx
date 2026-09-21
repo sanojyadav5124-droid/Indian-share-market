@@ -24,17 +24,36 @@ export const PricingManagerModal: React.FC = () => {
     updateMarketPrice,
     bulkUpdatePrices,
     simulateMarketShift,
+    fetchLiveMarketPrices,
+    isFetchingLivePrices,
+    lastLiveSyncTime,
+    livePriceError,
   } = usePortfolio();
 
   const [bulkText, setBulkText] = useState('');
   const [bulkResult, setBulkResult] = useState<{ successCount: number; errors: string[] } | null>(
     null
   );
-  const [activeTab, setActiveTab] = useState<'individual' | 'bulk' | 'simulate'>('individual');
+  const [liveSyncResult, setLiveSyncResult] = useState<{ updatedCount: number; errors: string[] } | null>(
+    null
+  );
+  const [activeTab, setActiveTab] = useState<'individual' | 'live' | 'bulk' | 'simulate'>('individual');
   const [searchQuery, setSearchQuery] = useState('');
   const [editingPrices, setEditingPrices] = useState<Record<string, string>>({});
 
   if (!isPricingModalOpen) return null;
+
+  const handleLiveFetchAll = async () => {
+    const res = await fetchLiveMarketPrices();
+    setLiveSyncResult(res);
+  };
+
+  const handleLiveFetchSingle = async (symbol: string) => {
+    const res = await fetchLiveMarketPrices([symbol]);
+    if (res.updatedCount > 0) {
+      setLiveSyncResult(res);
+    }
+  };
 
   const filteredPrices = marketPrices.filter(
     (p) =>
@@ -105,7 +124,18 @@ export const PricingManagerModal: React.FC = () => {
                 : 'border-transparent text-zinc-500 hover:text-zinc-800'
             }`}
           >
-            Single Scrip Pricing ({marketPrices.length})
+            Manual Price Overrides ({marketPrices.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('live')}
+            className={`py-3 border-b-2 transition-all flex items-center gap-1.5 ${
+              activeTab === 'live'
+                ? 'border-emerald-600 text-emerald-700 font-semibold'
+                : 'border-transparent text-zinc-500 hover:text-zinc-800'
+            }`}
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Live Yahoo Finance Sync</span>
           </button>
           <button
             onClick={() => setActiveTab('bulk')}
@@ -131,6 +161,109 @@ export const PricingManagerModal: React.FC = () => {
 
         {/* Content Area */}
         <div className="p-6 overflow-y-auto flex-1">
+          {activeTab === 'live' && (
+            <div className="space-y-4">
+              <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div className="text-xs font-bold text-emerald-900 uppercase tracking-wide flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+                    <span>Yahoo Finance Free Market API</span>
+                  </div>
+                  <p className="text-xs text-emerald-800 mt-0.5">
+                    Fetches real-time / delayed NSE & BSE stock quotes and mutual fund NAVs automatically.
+                  </p>
+                  {lastLiveSyncTime && (
+                    <div className="text-[11px] text-emerald-700 font-mono mt-1">
+                      Last synchronized at: {lastLiveSyncTime}
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  id="pricing-fetch-all-live-btn"
+                  onClick={handleLiveFetchAll}
+                  disabled={isFetchingLivePrices}
+                  className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs flex items-center justify-center gap-2 transition-colors shrink-0 disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isFetchingLivePrices ? 'animate-spin' : ''}`} />
+                  <span>{isFetchingLivePrices ? 'Fetching Live Quotes...' : 'Sync All Tracked Scrips'}</span>
+                </button>
+              </div>
+
+              {liveSyncResult && (
+                <div
+                  className={`p-3 rounded-xl border text-xs ${
+                    liveSyncResult.updatedCount > 0
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                      : 'bg-rose-50 border-rose-200 text-rose-900'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 font-medium">
+                    {liveSyncResult.updatedCount > 0 ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 text-rose-600" />
+                    )}
+                    <span>
+                      {liveSyncResult.updatedCount > 0
+                        ? `Successfully updated ${liveSyncResult.updatedCount} scrip prices from Yahoo Finance.`
+                        : 'No quotes were updated.'}
+                    </span>
+                  </div>
+                  {liveSyncResult.errors.length > 0 && (
+                    <ul className="list-disc pl-5 mt-1 text-[11px] text-rose-700">
+                      {liveSyncResult.errors.map((err, idx) => (
+                        <li key={idx}>{err}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+
+              {livePriceError && !liveSyncResult && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>{livePriceError}</span>
+                </div>
+              )}
+
+              <div className="divide-y divide-zinc-100 border border-zinc-200 rounded-xl overflow-hidden">
+                {marketPrices.map((p) => (
+                  <div
+                    key={p.symbol}
+                    className="p-3 flex items-center justify-between hover:bg-zinc-50/80 transition-colors text-xs"
+                  >
+                    <div>
+                      <div className="font-semibold text-zinc-900 flex items-center gap-1.5">
+                        <span>{p.symbol}</span>
+                        <span className="text-[10px] text-zinc-400 font-mono">
+                          {p.instrumentType === 'MUTUAL_FUND' ? 'NAV' : 'NSE/BSE'}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-zinc-500 truncate max-w-[240px]">{p.name}</div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <span className="font-mono font-semibold text-zinc-900 block">{formatINR(p.cmp)}</span>
+                        <span className="text-[10px] text-zinc-400">Updated: {p.lastUpdated}</span>
+                      </div>
+                      <button
+                        onClick={() => handleLiveFetchSingle(p.symbol)}
+                        disabled={isFetchingLivePrices}
+                        className="px-2.5 py-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-medium rounded-lg text-[11px] flex items-center gap-1 transition-colors"
+                        title="Fetch live price for this scrip only"
+                      >
+                        <RefreshCw className="w-3 h-3 text-zinc-500" />
+                        <span>Fetch</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {activeTab === 'individual' && (
             <div className="space-y-4">
               <div className="flex items-center gap-2">

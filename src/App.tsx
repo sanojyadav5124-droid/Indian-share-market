@@ -15,10 +15,18 @@ import { AddCustomStockModal } from './components/AddCustomStockModal';
 import { LotDetailsModal } from './components/LotDetailsModal';
 import { FamilyProfileManagerModal } from './components/FamilyProfileManagerModal';
 import { BackupSyncModal } from './components/BackupSyncModal';
+import { ExportModal } from './components/ExportModal';
 import { ShieldCheck, HardDrive, BookOpen, Layers } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
-  const { activeTab, setActiveTab, costBasisMethod, setCostBasisMethod } = usePortfolio();
+  const {
+    activeTab,
+    setActiveTab,
+    costBasisMethod,
+    setCostBasisMethod,
+    isExportModalOpen,
+    setIsExportModalOpen,
+  } = usePortfolio();
   const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
 
   return (
@@ -48,6 +56,10 @@ const MainLayout: React.FC = () => {
       <AddCustomStockModal />
       <LotDetailsModal />
       <FamilyProfileManagerModal />
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+      />
       <BackupSyncModal
         isOpen={isBackupModalOpen}
         onClose={() => setIsBackupModalOpen(false)}

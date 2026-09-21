@@ -33,6 +33,206 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Yahoo Finance Live Market Price Engine
+const YAHOO_USER_AGENT =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
+const KNOWN_SYMBOL_MAP: Record<string, string[]> = {
+  INFOSYS: ['INFY.NS', 'INFOSYS.NS', '500209.BO'],
+  INFY: ['INFY.NS', '500209.BO'],
+  TATAMOTORS: ['TMPV.NS', 'TMCV.NS', '500570.BO', 'TATAMOTORS.NS'],
+  PPFAS_FLEXI: ['0P0000YWL1.BO', '0P0000YWL0.BO'],
+  MIRAE_LARGEMID: ['0P0000XW0F.BO'],
+  QUANT_SMALLCAP: ['0P0000XW23.BO'],
+};
+
+async function fetchYahooQuote(rawSymbol: string): Promise<{
+  symbol: string;
+  name?: string;
+  cmp: number;
+  previousClose: number;
+  dayChange?: number;
+  dayChangePercent?: number;
+  currency?: string;
+  exchange?: string;
+  lastUpdated: string;
+  yahooTicker: string;
+} | null> {
+  const symUpper = rawSymbol.trim().toUpperCase();
+  if (!symUpper || symUpper === 'INR_CASH') return null;
+
+  // Candidates to try
+  const candidates: string[] = [];
+  if (KNOWN_SYMBOL_MAP[symUpper]) {
+    candidates.push(...KNOWN_SYMBOL_MAP[symUpper]);
+  }
+
+  if (symUpper.endsWith('.NS') || symUpper.endsWith('.BO')) {
+    candidates.push(symUpper);
+  } else {
+    candidates.push(`${symUpper}.NS`, `${symUpper}.BO`);
+  }
+
+  for (const ticker of candidates) {
+    try {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(
+        ticker
+      )}?interval=1d&range=1d`;
+      const response = await fetch(url, {
+        headers: { 'User-Agent': YAHOO_USER_AGENT },
+      });
+
+      if (response.ok) {
+        const data: any = await response.json();
+        const meta = data.chart?.result?.[0]?.meta;
+        if (meta && typeof meta.regularMarketPrice === 'number' && meta.regularMarketPrice > 0) {
+          const cmp = meta.regularMarketPrice;
+          const previousClose = meta.chartPreviousClose || meta.previousClose || cmp;
+          const dayChange = Math.round((cmp - previousClose) * 100) / 100;
+          const dayChangePercent =
+            previousClose > 0 ? Math.round(((cmp - previousClose) / previousClose) * 10000) / 100 : 0;
+          const lastUpdated = meta.regularMarketTime
+            ? new Date(meta.regularMarketTime * 1000).toISOString().replace('T', ' ').substring(0, 19)
+            : new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+          return {
+            symbol: symUpper,
+            name: meta.shortName || meta.longName || symUpper,
+            cmp,
+            previousClose,
+            dayChange,
+            dayChangePercent,
+            currency: meta.currency || 'INR',
+            exchange: meta.exchangeName || 'NSE',
+            lastUpdated,
+            yahooTicker: ticker,
+          };
+        }
+      }
+    } catch (e) {
+      // Continue to next candidate
+    }
+  }
+
+  // Fallback: Try Yahoo Search API to find Indian ticker
+  try {
+    const searchUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(
+      symUpper
+    )}&quotesCount=4&newsCount=0`;
+    const searchRes = await fetch(searchUrl, {
+      headers: { 'User-Agent': YAHOO_USER_AGENT },
+    });
+    if (searchRes.ok) {
+      const searchData: any = await searchRes.json();
+      const matchingQuote = searchData.quotes?.find(
+        (q: any) =>
+          (q.exchange === 'NSI' || q.exchange === 'BSE' || q.symbol?.endsWith('.NS') || q.symbol?.endsWith('.BO')) &&
+          q.symbol
+      );
+      if (matchingQuote?.symbol) {
+        const chartUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(
+          matchingQuote.symbol
+        )}?interval=1d&range=1d`;
+        const chartRes = await fetch(chartUrl, {
+          headers: { 'User-Agent': YAHOO_USER_AGENT },
+        });
+        if (chartRes.ok) {
+          const cData: any = await chartRes.json();
+          const meta = cData.chart?.result?.[0]?.meta;
+          if (meta && typeof meta.regularMarketPrice === 'number' && meta.regularMarketPrice > 0) {
+            const cmp = meta.regularMarketPrice;
+            const previousClose = meta.chartPreviousClose || meta.previousClose || cmp;
+            return {
+              symbol: symUpper,
+              name: matchingQuote.shortname || matchingQuote.longname || meta.shortName || symUpper,
+              cmp,
+              previousClose,
+              dayChange: Math.round((cmp - previousClose) * 100) / 100,
+              dayChangePercent:
+                previousClose > 0 ? Math.round(((cmp - previousClose) / previousClose) * 10000) / 100 : 0,
+              currency: meta.currency || 'INR',
+              exchange: meta.exchangeName || 'NSE',
+              lastUpdated: meta.regularMarketTime
+                ? new Date(meta.regularMarketTime * 1000).toISOString().replace('T', ' ').substring(0, 19)
+                : new Date().toISOString().replace('T', ' ').substring(0, 19),
+              yahooTicker: matchingQuote.symbol,
+            };
+          }
+        }
+      }
+    }
+  } catch (err) {
+    // Search fallback error
+  }
+
+  return null;
+}
+
+// Single Quote Endpoint
+app.get('/api/quote/:symbol', async (req, res) => {
+  try {
+    const symbol = req.params.symbol;
+    const quote = await fetchYahooQuote(symbol);
+    if (quote) {
+      res.json({ success: true, quote });
+    } else {
+      res.status(404).json({ success: false, error: `Could not fetch live quote for ${symbol}` });
+    }
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || 'Error fetching quote' });
+  }
+});
+
+// Batch Live Market Prices Endpoint
+app.post('/api/market-prices', async (req, res) => {
+  try {
+    const symbolsInput = req.body.symbols;
+    if (!Array.isArray(symbolsInput) || symbolsInput.length === 0) {
+      res.status(400).json({ success: false, error: 'Array of symbols is required' });
+      return;
+    }
+
+    const uniqueSymbols = Array.from(new Set(symbolsInput.map((s: string) => String(s).trim().toUpperCase()))).filter(
+      (s) => s && s !== 'INR_CASH'
+    );
+
+    // Limit concurrency to prevent socket exhaustion
+    const results: any[] = [];
+    const errors: string[] = [];
+
+    const CHUNK_SIZE = 6;
+    for (let i = 0; i < uniqueSymbols.length; i += CHUNK_SIZE) {
+      const chunk = uniqueSymbols.slice(i, i + CHUNK_SIZE);
+      const chunkPromises = chunk.map(async (sym) => {
+        const quote = await fetchYahooQuote(sym);
+        if (quote) {
+          results.push(quote);
+        } else {
+          errors.push(`Price unavailable for ${sym}`);
+        }
+      });
+      await Promise.all(chunkPromises);
+    }
+
+    res.json({
+      success: true,
+      source: 'Yahoo Finance (Live NSE/BSE Feed)',
+      syncedAt: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      quotes: results,
+      totalRequested: uniqueSymbols.length,
+      updatedCount: results.length,
+      failedCount: errors.length,
+      errors: errors.slice(0, 10),
+    });
+  } catch (err: any) {
+    console.error('Error fetching live market prices:', err);
+    res.status(500).json({
+      success: false,
+      error: err.message || 'Failed to fetch live prices from Yahoo Finance',
+    });
+  }
+});
+
 // 1. Zero-Code NSDL/CDSL CAS Processing Route
 app.post('/api/ai/parse-cas', async (req, res) => {
   try {

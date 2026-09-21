@@ -11,6 +11,7 @@ import {
   Coins,
   Calendar,
   Layers,
+  Download,
 } from 'lucide-react';
 import { usePortfolio } from '../context/PortfolioContext';
 import { ProfileId, TransactionType } from '../types';
@@ -21,6 +22,8 @@ export const TransactionLedgerView: React.FC = () => {
     transactions,
     deleteTransaction,
     setIsAddTxModalOpen,
+    setIsExportModalOpen,
+    exportTransactionsCSV,
     activeProfile,
     profiles,
   } = usePortfolio();
@@ -213,10 +216,22 @@ export const TransactionLedgerView: React.FC = () => {
               className="text-xs bg-zinc-50 border border-zinc-200 rounded-lg px-2.5 py-1.5 text-zinc-700 focus:outline-none"
             >
               <option value="ALL">All Family Profiles</option>
-              <option value="self">Arjun (Self)</option>
-              <option value="spouse">Pooja (Spouse)</option>
-              <option value="parent">Ramesh (Parent)</option>
+              {profiles.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} ({p.relation})
+                </option>
+              ))}
             </select>
+
+            <button
+              id="export-tx-csv-btn"
+              onClick={exportTransactionsCSV}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-zinc-100 hover:bg-zinc-200 text-zinc-700 border border-zinc-200 transition-colors"
+              title="Export filtered transactions to CSV"
+            >
+              <Download className="w-3.5 h-3.5 text-zinc-500" />
+              <span>Export CSV</span>
+            </button>
           </div>
         </div>
 
