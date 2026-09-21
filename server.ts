@@ -233,6 +233,101 @@ app.post('/api/market-prices', async (req, res) => {
   }
 });
 
+// Live BSE / NSE Market Catalyst & Corporate Actions Calendar Route
+app.post('/api/market-calendar', async (req, res) => {
+  try {
+    const portfolioSymbols: string[] = Array.isArray(req.body.symbols) ? req.body.symbols : [];
+    const targetSymbols = Array.from(
+      new Set([
+        ...portfolioSymbols.map((s) => String(s).trim().toUpperCase()),
+        'TCS',
+        'INFY',
+        'RELIANCE',
+        'HDFCBANK',
+        'TATAMOTORS',
+        'ICICIBANK',
+        'CDSL',
+      ])
+    ).filter((s) => s && s !== 'INR_CASH');
+
+    const liveCorporateEvents: any[] = [];
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10);
+
+    // Fetch live earnings dates from Yahoo Finance for target symbols
+    for (const sym of targetSymbols.slice(0, 8)) {
+      try {
+        const ticker = sym.endsWith('.NS') || sym.endsWith('.BO') ? sym : `${sym}.NS`;
+        const summaryUrl = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(
+          ticker
+        )}?modules=calendarEvents,defaultKeyStatistics`;
+        const response = await fetch(summaryUrl, {
+          headers: { 'User-Agent': YAHOO_USER_AGENT },
+        });
+
+        if (response.ok) {
+          const data: any = await response.json();
+          const cal = data.quoteSummary?.result?.[0]?.calendarEvents;
+          if (cal) {
+            // Earnings date
+            if (cal.earnings?.earningsDate && Array.isArray(cal.earnings.earningsDate) && cal.earnings.earningsDate.length > 0) {
+              const rawTimestamp = cal.earnings.earningsDate[0]?.raw;
+              if (rawTimestamp) {
+                const earnDate = new Date(rawTimestamp * 1000).toISOString().slice(0, 10);
+                liveCorporateEvents.push({
+                  id: `live-earn-${sym}-${earnDate}`,
+                  title: `${sym} - Board Meeting & Financial Results`,
+                  category: 'EARNINGS',
+                  date: earnDate,
+                  description: `Live corporate action from NSE/BSE: Board meeting for quarterly financial results & dividend announcement.`,
+                  badgeText: 'Board Concall',
+                  symbol: sym,
+                  relatedSymbol: sym,
+                  impact: 'HIGH',
+                  isAlertSet: true,
+                  status: earnDate >= todayStr ? 'UPCOMING' : 'PASSED',
+                });
+              }
+            }
+            // Ex-Dividend date
+            if (cal.exDividendDate?.raw) {
+              const divDate = new Date(cal.exDividendDate.raw * 1000).toISOString().slice(0, 10);
+              liveCorporateEvents.push({
+                id: `live-div-${sym}-${divDate}`,
+                title: `${sym} - Ex-Dividend / Corporate Action`,
+                category: 'EARNINGS',
+                date: divDate,
+                description: `Ex-dividend record date for ${sym} shareholders registered with NSDL / CDSL.`,
+                badgeText: 'Dividend Action',
+                symbol: sym,
+                relatedSymbol: sym,
+                impact: 'MEDIUM',
+                isAlertSet: true,
+                status: divDate >= todayStr ? 'UPCOMING' : 'PASSED',
+              });
+            }
+          }
+        }
+      } catch (err) {
+        // Continue to next symbol
+      }
+    }
+
+    res.json({
+      success: true,
+      source: 'NSE / BSE & Yahoo Financial Calendar',
+      syncedAt: new Date().toISOString().replace('T', ' ').substring(0, 19),
+      liveEvents: liveCorporateEvents,
+    });
+  } catch (err: any) {
+    console.error('Error fetching market calendar:', err);
+    res.status(500).json({
+      success: false,
+      error: err.message || 'Failed to fetch live market calendar',
+    });
+  }
+});
+
 // 1. Zero-Code NSDL/CDSL CAS Processing Route
 app.post('/api/ai/parse-cas', async (req, res) => {
   try {

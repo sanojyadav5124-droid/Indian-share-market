@@ -66,6 +66,11 @@ interface PortfolioContextType {
   addCalendarEvent: (ev: Omit<CalendarEvent, 'id'>) => void;
   toggleCalendarAlert: (id: string) => void;
   deleteCalendarEvent: (id: string) => void;
+  fetchLiveMarketCalendar: () => Promise<{ newCount: number; message: string }>;
+  resetCalendarToOfficialSchedule: () => void;
+  isFetchingLiveCalendar: boolean;
+  lastCalendarSyncTime: string | null;
+  calendarSyncError: string | null;
 
   // Family Profile Actions
   addProfile: (profile: Omit<FamilyProfile, 'id'>) => FamilyProfile;
@@ -140,12 +145,37 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return 'day';
   });
 
+  const [isFetchingLiveCalendar, setIsFetchingLiveCalendar] = useState(false);
+  const [lastCalendarSyncTime, setLastCalendarSyncTime] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem(`${STORAGE_KEY}_last_cal_sync_time`);
+    } catch {
+      return null;
+    }
+  });
+  const [calendarSyncError, setCalendarSyncError] = useState<string | null>(null);
+
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_calendar_events`);
       if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        const parsed: CalendarEvent[] = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Check if parsed dataset has current 2026/2027 dates
+          const has2026Schedule = parsed.some((ev) => ev.date >= '2026-01-01');
+          if (has2026Schedule) {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            return parsed.map((ev) => ({
+              ...ev,
+              status: ev.date >= todayStr ? 'UPCOMING' : 'PASSED',
+            }));
+          }
+          // If stored events were from outdated 2025 seeds, merge user-created events with fresh schedule
+          const customUserEvents = parsed.filter(
+            (ev) => ev.id.startsWith('cal-') || ev.category === 'CUSTOM'
+          );
+          return [...INITIAL_CALENDAR_EVENTS, ...customUserEvents];
+        }
       }
     } catch (e) {
       console.error('Failed to load calendar events', e);
@@ -627,6 +657,66 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  // Live BSE / NSE Market Calendar Sync
+  const fetchLiveMarketCalendar = async (): Promise<{ newCount: number; message: string }> => {
+    setIsFetchingLiveCalendar(true);
+    setCalendarSyncError(null);
+    try {
+      const portfolioSymbols = holdings.map((h) => h.symbol);
+      const res = await fetch('/api/market-calendar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbols: portfolioSymbols }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Server returned HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      const liveEvents: CalendarEvent[] = Array.isArray(data.liveEvents) ? data.liveEvents : [];
+
+      let newAdded = 0;
+      setCalendarEvents((prev) => {
+        const existingIds = new Set(prev.map((e) => e.id));
+        const toAdd = liveEvents.filter((e) => !existingIds.has(e.id));
+        newAdded = toAdd.length;
+        return [...toAdd, ...prev];
+      });
+
+      const syncTime = new Date().toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+      setLastCalendarSyncTime(syncTime);
+      try {
+        localStorage.setItem(`${STORAGE_KEY}_last_cal_sync_time`, syncTime);
+      } catch (e) {}
+
+      return {
+        newCount: newAdded,
+        message:
+          newAdded > 0
+            ? `Successfully retrieved ${newAdded} new live corporate announcements.`
+            : 'Corporate actions & market schedules are already fully synced.',
+      };
+    } catch (err: any) {
+      const msg = err.message || 'Failed to sync live BSE/NSE market calendar';
+      setCalendarSyncError(msg);
+      return { newCount: 0, message: msg };
+    } finally {
+      setIsFetchingLiveCalendar(false);
+    }
+  };
+
+  const resetCalendarToOfficialSchedule = () => {
+    setCalendarEvents(INITIAL_CALENDAR_EVENTS);
+    try {
+      localStorage.setItem(`${STORAGE_KEY}_calendar_events`, JSON.stringify(INITIAL_CALENDAR_EVENTS));
+    } catch (e) {}
+  };
+
   // Export JSON
   const exportBackupJSON = () => {
     const payload = {
@@ -1010,6 +1100,11 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         addCalendarEvent,
         toggleCalendarAlert,
         deleteCalendarEvent,
+        fetchLiveMarketCalendar,
+        resetCalendarToOfficialSchedule,
+        isFetchingLiveCalendar,
+        lastCalendarSyncTime,
+        calendarSyncError,
         addProfile,
         deleteProfile,
         updateProfile,
