@@ -1,6 +1,6 @@
 {
   "name": "SKYadav portfolio App",
-  "description": "A 100% self-contained, local-first Indian portfolio management platform with FIFO tax engine (STCG & LTCG), WAC inventory tracking, multi-profile family consolidation, and offline pricing manager.",
+  "description": "A 100% self-contained, local-first Indian portfolio management platform with Finance Act 2024 FIFO tax engine, visual tax impact analytics, WAC inventory tracking, Storage Access API weekly auto-backups, and multi-profile family consolidation.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

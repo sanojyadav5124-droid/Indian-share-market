@@ -11,14 +11,19 @@ import {
   Calendar,
   Layers,
   ArrowRight,
+  FolderCheck,
+  TrendingUp,
+  PieChart,
 } from 'lucide-react';
 import { usePortfolio } from '../context/PortfolioContext';
 import { formatINR, formatPercent } from '../utils/formatters';
+import { TaxImpactVisualizer } from './TaxImpactVisualizer';
 
 export const TaxEngineView: React.FC = () => {
   const {
     summary,
     realizedLots,
+    holdings,
     activeProfile,
     profiles,
     exportBackupJSON,
@@ -26,6 +31,7 @@ export const TaxEngineView: React.FC = () => {
     exportTaxCSV,
     exportHoldingsCSV,
     resetToDefaults,
+    setIsBackupModalOpen,
   } = usePortfolio();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -73,6 +79,15 @@ export const TaxEngineView: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <button
+            id="tax-open-backup-btn"
+            onClick={() => setIsBackupModalOpen(true)}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-colors"
+            title="Configure Storage Access API & Weekly Auto-Backup"
+          >
+            <FolderCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Storage & Auto-Backup</span>
+          </button>
+          <button
             id="export-tax-csv-btn"
             onClick={exportTaxCSV}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-200 transition-colors"
@@ -82,6 +97,14 @@ export const TaxEngineView: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Interactive Tax Impact Visualizer */}
+      <TaxImpactVisualizer
+        summary={summary}
+        holdings={holdings}
+        realizedLots={realizedLots}
+        activeProfile={activeProfile}
+      />
 
       {/* Tax Liability Breakdown Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -293,6 +316,32 @@ export const TaxEngineView: React.FC = () => {
               Your entire portfolio resides exclusively in browser storage. Export JSON regularly to prevent accidental cache loss.
             </p>
           </div>
+        </div>
+
+        {/* Storage Access API & Auto-Backup Banner */}
+        <div className="mb-4 p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+              <FolderCheck className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-xs font-bold text-emerald-950 flex items-center gap-2">
+                <span>Storage Access API & Weekly Auto-Backup</span>
+                <span className="text-[10px] bg-emerald-200 text-emerald-900 px-1.5 py-0.2 rounded font-mono font-bold">Recommended</span>
+              </div>
+              <p className="text-[11px] text-emerald-800">
+                Grant native browser directory access to keep weekly auto-backups saved directly to your local PC/Mac folder with rolling snapshot rollbacks.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsBackupModalOpen(true)}
+            className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-semibold shrink-0 shadow-2xs transition-colors flex items-center gap-1.5"
+          >
+            <span>Configure Storage & Auto-Backup</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">

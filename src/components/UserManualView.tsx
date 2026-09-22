@@ -32,15 +32,15 @@ export const UserManualView: React.FC = () => {
 
   const navigationItems = [
     { id: 'all', label: 'Complete Handbook' },
-    { id: 'architecture', label: '1. Architecture & Data Sovereignty' },
+    { id: 'architecture', label: '1. Architecture & Storage Access API' },
     { id: 'dashboard', label: '2. Executive Dashboard Tab' },
     { id: 'holdings', label: '3. Holdings & FIFO/WAC Tab' },
     { id: 'ledger', label: '4. Transaction Ledger & Friction' },
-    { id: 'tax_engine', label: '5. Capital Gains Tax (Budget 2024)' },
+    { id: 'tax_engine', label: '5. Capital Gains & Visual Tax Impact' },
     { id: 'calendar', label: '6. Dalal Street Catalyst Calendar' },
     { id: 'ai_copilot', label: '7. Gemini 3.8 Flash AI Co-Pilot' },
     { id: 'corporate_actions', label: '8. Corporate Actions & Rebasing' },
-    { id: 'exports_sync', label: '9. Exports, Reports & Sync' },
+    { id: 'exports_sync', label: '9. Exports, Auto-Backup & Sync' },
     { id: 'view_modes', label: '10. View Modes & Mobile PWA' },
   ];
 
@@ -152,6 +152,37 @@ export const UserManualView: React.FC = () => {
               <p className="text-zinc-600 leading-relaxed text-[11px]">
                 Transferring portfolios across devices (e.g. desktop to smartphone) is handled via atomic JSON export files. Uploading the JSON file on the target device restores all family accounts and trade histories in &lt;1 second.
               </p>
+            </div>
+          </div>
+
+          {/* Storage Access API & Auto-Backup Deep Dive */}
+          <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/50 space-y-3">
+            <div className="flex items-center gap-2 font-bold text-emerald-950 text-sm">
+              <ShieldCheck className="w-4 h-4 text-emerald-700" />
+              <span>Native Storage Access API & Automated Weekly Local Backups</span>
+            </div>
+            <p className="text-xs text-emerald-900 leading-relaxed">
+              To guarantee bulletproof data security without relying on insecure cloud telemetry or external third-party sync servers, the application leverages standard modern browser web platform APIs:
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1">
+              <div className="p-3 bg-white rounded-lg border border-emerald-200 space-y-1">
+                <span className="font-bold text-zinc-900 block">1. File System Access API</span>
+                <p className="text-zinc-600 text-[11px] leading-relaxed">
+                  Allows you to authorize a dedicated backup directory on your local disk (such as <code>Documents/SKYadav_Backups</code>). Once authorized, the app writes timestamped <code>.json</code> backups directly to disk without manual browser download prompts.
+                </p>
+              </div>
+              <div className="p-3 bg-white rounded-lg border border-emerald-200 space-y-1">
+                <span className="font-bold text-zinc-900 block">2. Persistent Storage Flag</span>
+                <p className="text-zinc-600 text-[11px] leading-relaxed">
+                  Requests the browser's <code>navigator.storage.persist()</code> quota lease. This upgrades browser storage from 'best-effort' to 'persistent', preventing automated operating system disk cleanup or browser eviction from wiping your portfolio.
+                </p>
+              </div>
+              <div className="p-3 bg-white rounded-lg border border-emerald-200 space-y-1">
+                <span className="font-bold text-zinc-900 block">3. Weekly Auto-Scheduler</span>
+                <p className="text-zinc-600 text-[11px] leading-relaxed">
+                  Whenever you use or open the application, an autonomous internal background daemon calculates whether 7 days have elapsed since your previous snapshot. If due, it takes a clean local snapshot automatically.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -355,6 +386,37 @@ export const UserManualView: React.FC = () => {
                 <p className="text-xs text-indigo-900 leading-relaxed">
                   Applies to listed equity assets held for <strong>365 days or more</strong>. The annual tax-free exemption limit is set at <strong>₹1,25,000 per financial year</strong>. Gains exceeding ₹1.25 Lakh are taxed at 12.5% (previously 10%).
                 </p>
+              </div>
+            </div>
+
+            {/* Visual Tax Impact Engine Section */}
+            <div className="p-4 bg-emerald-50/50 rounded-xl border border-emerald-200 space-y-3">
+              <span className="font-bold text-emerald-950 text-sm flex items-center gap-2">
+                <Calculator className="w-4 h-4 text-emerald-700" />
+                <span>Interactive Visual Tax Impact Dashboard: 3 Analytical Perspectives</span>
+              </span>
+              <p className="text-xs text-emerald-900 leading-relaxed">
+                The visualizer translates complex tax lot algebra into three intuitive, interactive graphic models to guide your execution:
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                <div className="p-3 bg-white rounded-lg border border-emerald-200/80 space-y-1">
+                  <span className="font-bold text-zinc-900 text-xs block">1. Realized Tax Waterfall</span>
+                  <p className="text-[11px] text-zinc-600">
+                    A visual breakdown contrasting gross capital profits against the statutory ₹1.25L Section 112A exemption, isolating exact taxable amounts for 20% STCG and 12.5% LTCG, and projecting total net post-tax capital retained.
+                  </p>
+                </div>
+                <div className="p-3 bg-white rounded-lg border border-emerald-200/80 space-y-1">
+                  <span className="font-bold text-zinc-900 text-xs block">2. Projected Liquidation Tax</span>
+                  <p className="text-[11px] text-zinc-600">
+                    Interactive liquidation simulation slider (25%, 50%, 75%, 100%). It walks through every open FIFO lot and models the exact advance tax liability if you sold positions today, calculating the effective blended portfolio tax rate.
+                  </p>
+                </div>
+                <div className="p-3 bg-white rounded-lg border border-emerald-200/80 space-y-1">
+                  <span className="font-bold text-zinc-900 text-xs block">3. Exemption & Loss Harvesting</span>
+                  <p className="text-[11px] text-zinc-600">
+                    Visual tracking of the ₹1,25,000 annual exemption limit. Displays how much tax-free LTCG headroom remains before March 31st, alongside an audit of unrealized loss positions available to harvest and offset taxable gains.
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -566,6 +628,48 @@ export const UserManualView: React.FC = () => {
             <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200 space-y-1">
               <span className="font-bold text-zinc-900 block">Printable HTML Report</span>
               <p className="text-zinc-500 text-[11px]">Self-contained, formal Chartered Accountant audit printout complete with charts, demat summaries, and signature block.</p>
+            </div>
+          </div>
+
+          {/* Storage Access API & Weekly Auto-Backup User Workflow */}
+          <div className="p-5 rounded-xl border border-indigo-200 bg-indigo-50/50 space-y-4">
+            <div className="flex items-center gap-2 font-bold text-indigo-950 text-sm">
+              <ShieldCheck className="w-4 h-4 text-indigo-700" />
+              <span>User Guide: Configuring Storage Access API & Weekly Auto-Backups</span>
+            </div>
+            <p className="text-xs text-indigo-900 leading-relaxed">
+              Follow these three simple steps to establish an indestructible offline backup system on your computer or phone:
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              <div className="p-3.5 bg-white rounded-lg border border-indigo-200/80 space-y-1.5">
+                <span className="font-bold text-zinc-900 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px]">1</span>
+                  <span>Authorize Local Folder</span>
+                </span>
+                <p className="text-[11px] text-zinc-600 leading-relaxed">
+                  Open <strong>Backup & Sync</strong>, switch to the <em>Storage Access API & Auto-Backup</em> tab, and click <strong>"Connect Backup Storage Folder"</strong>. Choose any local directory (e.g. <code>Documents/Backups</code> or a synced Google Drive / OneDrive folder).
+                </p>
+              </div>
+
+              <div className="p-3.5 bg-white rounded-lg border border-indigo-200/80 space-y-1.5">
+                <span className="font-bold text-zinc-900 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px]">2</span>
+                  <span>Enable Weekly Cadence</span>
+                </span>
+                <p className="text-[11px] text-zinc-600 leading-relaxed">
+                  Ensure the <strong>Weekly Auto-Backup</strong> switch is toggled <em>Active</em>. The internal scheduler checks your previous backup date on every session and automatically generates an encrypted, complete snapshot if 7 days have passed.
+                </p>
+              </div>
+
+              <div className="p-3.5 bg-white rounded-lg border border-indigo-200/80 space-y-1.5">
+                <span className="font-bold text-zinc-900 flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px]">3</span>
+                  <span>Rolling Snapshot Rollbacks</span>
+                </span>
+                <p className="text-[11px] text-zinc-600 leading-relaxed">
+                  The system maintains the last 8 snapshots in isolated browser storage. If you accidentally enter wrong trades or want to compare historical dates, click <strong>"Restore"</strong> next to any historical snapshot to rollback instantly.
+                </p>
+              </div>
             </div>
           </div>
         </div>

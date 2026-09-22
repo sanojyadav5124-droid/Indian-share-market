@@ -28,8 +28,9 @@ const MainLayout: React.FC = () => {
     setCostBasisMethod,
     isExportModalOpen,
     setIsExportModalOpen,
+    isBackupModalOpen,
+    setIsBackupModalOpen,
   } = usePortfolio();
-  const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-zinc-50/70 text-zinc-900 font-sans antialiased flex flex-col selection:bg-zinc-900 selection:text-white pb-16 md:pb-0">

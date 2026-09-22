@@ -24,6 +24,7 @@ import {
 import { MASTER_STOCK_DIRECTORY } from '../data/stockDirectory';
 import { INITIAL_CALENDAR_EVENTS } from '../data/calendarData';
 import { processPortfolioTransactions } from '../utils/taxAndFifoEngine';
+import { checkAndRunScheduledAutoBackup } from '../utils/storageAccessEngine';
 
 interface PortfolioContextType {
   activeProfile: ProfileId | 'consolidated';
@@ -389,6 +390,22 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const { holdings, realizedLots, summary, cashBalances } = useMemo(() => {
     return processPortfolioTransactions(transactions, marketPrices, activeProfile);
   }, [transactions, marketPrices, activeProfile]);
+
+  // Automated Weekly Auto-Backup Scheduler Check
+  useEffect(() => {
+    if (transactions.length > 0) {
+      checkAndRunScheduledAutoBackup({
+        transactions,
+        marketPrices,
+        profiles,
+        customStocks,
+        theme,
+        totalNetWorth: summary.totalNetWorth,
+      }).catch((e) => {
+        console.warn('Auto-backup check error:', e);
+      });
+    }
+  }, [transactions.length, marketPrices.length, profiles.length, summary.totalNetWorth]);
 
   // Actions
   const addTransaction = (txData: Omit<Transaction, 'id'>) => {
