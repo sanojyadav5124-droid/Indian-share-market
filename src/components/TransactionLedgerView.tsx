@@ -275,15 +275,11 @@ export const TransactionLedgerView: React.FC = () => {
                       {/* Profile */}
                       <td className="py-3 px-3 font-sans whitespace-nowrap">
                         <span
-                          className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
-                            t.profileId === 'self'
-                              ? 'bg-emerald-50 text-emerald-700'
-                              : t.profileId === 'spouse'
-                              ? 'bg-indigo-50 text-indigo-700'
-                              : 'bg-amber-50 text-amber-700'
+                          className={`text-[10px] px-1.5 py-0.5 rounded font-medium border ${
+                            profileObj?.avatarColor || 'bg-zinc-100 text-zinc-700 border-zinc-200'
                           }`}
                         >
-                          {profileObj?.name.split(' ')[0]}
+                          {profileObj ? profileObj.name.split(' ')[0] || profileObj.name : t.profileId}
                         </span>
                       </td>
 

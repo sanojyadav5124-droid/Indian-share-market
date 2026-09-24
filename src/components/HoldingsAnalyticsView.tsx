@@ -42,6 +42,7 @@ export const HoldingsAnalyticsView: React.FC = () => {
     exportHoldingsCSV,
     summary,
     activeProfile,
+    profiles,
     isMobileView,
   } = usePortfolio();
 
@@ -543,24 +544,27 @@ export const HoldingsAnalyticsView: React.FC = () => {
                       </button>
                     </div>
 
-                    {/* Profile Breakdown tags */}
-                    <div className="flex flex-wrap items-center gap-1 pt-1">
-                      {h.profileBreakdown.self > 0 && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          Arjun: {h.profileBreakdown.self}
-                        </span>
-                      )}
-                      {h.profileBreakdown.spouse > 0 && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">
-                          Pooja: {h.profileBreakdown.spouse}
-                        </span>
-                      )}
-                      {h.profileBreakdown.parent > 0 && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
-                          Ramesh: {h.profileBreakdown.parent}
-                        </span>
-                      )}
-                    </div>
+                    {/* Dynamic Profile Breakdown tags */}
+                    {activeProfile === 'consolidated' && profiles.length > 1 && (
+                      <div className="flex flex-wrap items-center gap-1 pt-1">
+                        {profiles.map((p) => {
+                          const qty = h.profileBreakdown[p.id] || 0;
+                          if (qty <= 0) return null;
+                          const displayName = p.name.split(' ')[0] || p.name;
+                          return (
+                            <span
+                              key={p.id}
+                              className={`text-[9px] px-1.5 py-0.5 rounded border font-medium ${
+                                p.avatarColor || 'bg-zinc-100 text-zinc-700 border-zinc-200'
+                              }`}
+                              title={`${p.name} (${p.relation}): ${qty} units`}
+                            >
+                              {displayName}: {qty}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 );
               })
@@ -675,33 +679,27 @@ export const HoldingsAnalyticsView: React.FC = () => {
                         <div className="font-sans text-[11px] text-zinc-400 truncate max-w-[180px]">
                           {h.name}
                         </div>
-                        {/* Family member breakdown badges */}
-                        <div className="flex items-center gap-1 mt-1">
-                          {h.profileBreakdown.self > 0 && (
-                            <span
-                              className="text-[9px] px-1 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              title={`Arjun: ${h.profileBreakdown.self} units`}
-                            >
-                              Arjun: {h.profileBreakdown.self}
-                            </span>
-                          )}
-                          {h.profileBreakdown.spouse > 0 && (
-                            <span
-                              className="text-[9px] px-1 py-0.2 rounded bg-indigo-50 text-indigo-700 border border-indigo-200"
-                              title={`Pooja: ${h.profileBreakdown.spouse} units`}
-                            >
-                              Pooja: {h.profileBreakdown.spouse}
-                            </span>
-                          )}
-                          {h.profileBreakdown.parent > 0 && (
-                            <span
-                              className="text-[9px] px-1 py-0.2 rounded bg-amber-50 text-amber-700 border border-amber-200"
-                              title={`Ramesh: ${h.profileBreakdown.parent} units`}
-                            >
-                              Ramesh: {h.profileBreakdown.parent}
-                            </span>
-                          )}
-                        </div>
+                        {/* Dynamic Family member breakdown badges */}
+                        {activeProfile === 'consolidated' && profiles.length > 1 && (
+                          <div className="flex flex-wrap items-center gap-1 mt-1">
+                            {profiles.map((p) => {
+                              const qty = h.profileBreakdown[p.id] || 0;
+                              if (qty <= 0) return null;
+                              const displayName = p.name.split(' ')[0] || p.name;
+                              return (
+                                <span
+                                  key={p.id}
+                                  className={`text-[9px] px-1.5 py-0.2 rounded border font-medium ${
+                                    p.avatarColor || 'bg-zinc-100 text-zinc-700 border-zinc-200'
+                                  }`}
+                                  title={`${p.name} (${p.relation}): ${qty} units`}
+                                >
+                                  {displayName}: {qty}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        )}
                       </td>
 
                       {/* Sector & Cap */}

@@ -272,7 +272,7 @@ export function processPortfolioTransactions(
       if (!holdingsMap.has(sym)) {
         holdingsMap.set(sym, {
           symbol: sym,
-          profileBreakdown: { self: 0, spouse: 0, parent: 0 },
+          profileBreakdown: {},
           totalQuantity: 0,
           openLots: [],
           totalCostWAC: 0,
@@ -281,7 +281,7 @@ export function processPortfolioTransactions(
       }
 
       const item = holdingsMap.get(sym)!;
-      item.profileBreakdown[profId] += remainingQty;
+      item.profileBreakdown[profId] = (item.profileBreakdown[profId] || 0) + remainingQty;
       item.totalQuantity += remainingQty;
       item.openLots.push(...lots.filter((l) => l.remainingQuantity > 0));
 

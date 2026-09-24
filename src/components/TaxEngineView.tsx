@@ -257,8 +257,8 @@ export const TaxEngineView: React.FC = () => {
                   return (
                     <tr key={r.id} className="hover:bg-zinc-50/80 transition-colors">
                       <td className="py-3 px-3 font-sans">
-                        <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-zinc-100 text-zinc-700">
-                          {profileObj?.name.split(' ')[0]}
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium border ${profileObj?.avatarColor || 'bg-zinc-100 text-zinc-700 border-zinc-200'}`}>
+                          {profileObj ? profileObj.name.split(' ')[0] || profileObj.name : r.profileId}
                         </span>
                       </td>
                       <td className="py-3 px-3">
