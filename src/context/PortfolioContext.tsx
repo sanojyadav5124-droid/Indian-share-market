@@ -1057,12 +1057,15 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       </head>
       <body>
         <div class="header">
-          <div>
-            <div class="title">${profileLabel}</div>
-            <div class="subtitle">Executive Wealth & Holdings Statement • As of ${dateFormatted}</div>
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <img src="/skyadav-logo.png" alt="SKYadav Portfolio" style="height: 52px; width: auto; border-radius: 8px;" />
+            <div>
+              <div class="title">${profileLabel}</div>
+              <div class="subtitle">Executive Wealth & Holdings Statement • As of ${dateFormatted}</div>
+            </div>
           </div>
           <div style="text-align: right;">
-            <div style="font-weight: 600; font-size: 15px;">SKYadav portfolio App</div>
+            <div style="font-weight: 700; font-size: 16px; color: #0f172a;">SKYadav Portfolio</div>
             <div style="font-size: 12px; color: #64748b;">Source: NSE/BSE & Local Demat Records</div>
           </div>
         </div>

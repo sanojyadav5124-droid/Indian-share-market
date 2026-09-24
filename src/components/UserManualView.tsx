@@ -26,6 +26,7 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
+import { AppLogo } from './AppLogo';
 
 export const UserManualView: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('all');
@@ -48,16 +49,23 @@ export const UserManualView: React.FC = () => {
     <div className="max-w-5xl mx-auto space-y-8 pb-20">
       {/* Page Header */}
       <div className="bg-white p-6 sm:p-8 rounded-2xl border border-zinc-200 shadow-2xs">
-        <div className="flex items-center gap-2.5 text-xs font-mono text-zinc-500 uppercase tracking-wider">
-          <BookOpen className="w-4 h-4 text-emerald-600" />
-          <span>Official Documentation & Indian Tax Accounting Manual</span>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2.5 text-xs font-mono text-zinc-500 uppercase tracking-wider">
+              <BookOpen className="w-4 h-4 text-emerald-600" />
+              <span>Official Documentation & Indian Tax Accounting Manual</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 tracking-tight mt-2">
+              SKYadav Portfolio & FIFO Tax Engine Manual
+            </h1>
+            <p className="text-sm sm:text-base text-zinc-600 mt-2 leading-relaxed">
+              The definitive reference guide for multi-demat family wealth tracking, First-In First-Out (FIFO) tax lot allocation, Weighted Average Cost (WAC) inventory accounting, corporate actions cost rebasing, Dalal Street catalyst scheduling, and Gemini 3.8 Flash AI portfolio intelligence.
+            </p>
+          </div>
+          <div className="hidden md:flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-zinc-50 p-2 border border-zinc-200 shadow-xs">
+            <AppLogo size="lg" />
+          </div>
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 tracking-tight mt-2">
-          SKYadav Portfolio & FIFO Tax Engine Manual
-        </h1>
-        <p className="text-sm sm:text-base text-zinc-600 mt-2 leading-relaxed">
-          The definitive reference guide for multi-demat family wealth tracking, First-In First-Out (FIFO) tax lot allocation, Weighted Average Cost (WAC) inventory accounting, corporate actions cost rebasing, Dalal Street catalyst scheduling, and Gemini 3.8 Flash AI portfolio intelligence.
-        </p>
 
         {/* Section Quick Jump Filter */}
         <div className="mt-6 pt-5 border-t border-zinc-100 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">

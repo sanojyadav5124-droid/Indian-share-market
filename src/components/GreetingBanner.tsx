@@ -14,6 +14,7 @@ import {
   Check,
 } from 'lucide-react';
 import { PWAInstallButton } from './PWAInstallButton';
+import { AppLogo } from './AppLogo';
 import { ThemeMode } from '../types';
 
 interface GreetingBannerProps {
@@ -82,22 +83,26 @@ export const GreetingBanner: React.FC<GreetingBannerProps> = ({ onOpenBackupModa
   return (
     <div className="bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 text-white rounded-2xl p-5 border border-zinc-800 shadow-sm">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        {/* Left: Time greeting and date info */}
-        <div className="space-y-1.5">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-zinc-800/80 border border-zinc-700/60 flex items-center justify-center">
-              <GreetingIcon className={`w-4 h-4 ${greetingColor}`} />
-            </div>
-            <span className="text-xs font-medium text-zinc-400">
-              {greeting},
-            </span>
-            <span className="text-sm font-bold text-white tracking-tight">
-              {displayName}
-            </span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-              {activeProfile === 'consolidated' ? 'Consolidated Ledger' : `${activeProfileObj?.relation || 'Member'} Account`}
-            </span>
+        {/* Left: App Logo + Time greeting and date info */}
+        <div className="flex items-center gap-4">
+          <div className="hidden sm:flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-zinc-950/80 p-1 ring-1 ring-zinc-700/80 shadow-md">
+            <AppLogo size="lg" />
           </div>
+          <div className="space-y-1.5 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="p-1.5 rounded-lg bg-zinc-800/80 border border-zinc-700/60 flex items-center justify-center">
+                <GreetingIcon className={`w-4 h-4 ${greetingColor}`} />
+              </div>
+              <span className="text-xs font-medium text-zinc-400">
+                {greeting},
+              </span>
+              <span className="text-sm font-bold text-white tracking-tight">
+                {displayName}
+              </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                {activeProfile === 'consolidated' ? 'Consolidated Ledger' : `${activeProfileObj?.relation || 'Member'} Account`}
+              </span>
+            </div>
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-400">
             <span className="flex items-center gap-1.5">
@@ -135,6 +140,7 @@ export const GreetingBanner: React.FC<GreetingBannerProps> = ({ onOpenBackupModa
             </span>
           </div>
         </div>
+      </div>
 
         {/* Right: Quick Tool Actions (Backup, Family Manager, PWA Install, Theme) */}
         <div className="flex flex-wrap items-center gap-2 pt-2 lg:pt-0 border-t lg:border-t-0 border-zinc-800">

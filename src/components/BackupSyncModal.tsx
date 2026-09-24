@@ -26,6 +26,7 @@ import {
   Layers,
   Lock,
 } from 'lucide-react';
+import { AppLogo } from './AppLogo';
 import {
   AutoBackupConfig,
   LocalBackupSnapshot,
@@ -306,8 +307,8 @@ export const BackupSyncModal: React.FC<BackupSyncModalProps> = ({ isOpen, onClos
         {/* Header */}
         <div className="p-5 border-b border-zinc-200 flex items-center justify-between bg-zinc-50/80">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-zinc-900 text-white flex items-center justify-center shadow-xs">
-              <Database className="w-5 h-5 text-emerald-400" />
+            <div className="h-10 w-10 shrink-0 flex items-center justify-center">
+              <AppLogo size="md" />
             </div>
             <div>
               <div className="flex items-center gap-2">

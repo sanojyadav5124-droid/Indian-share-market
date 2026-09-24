@@ -20,6 +20,7 @@ import {
 import { usePortfolio } from '../context/PortfolioContext';
 import { ProfileId, ViewMode } from '../types';
 import { PWAInstallButton } from './PWAInstallButton';
+import { AppLogo } from './AppLogo';
 
 interface HeaderProps {
   onOpenBackupModal?: () => void;
@@ -77,8 +78,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenBackupModal }) => {
         <div className="flex items-center justify-between h-16 gap-2 sm:gap-4">
           {/* Brand & Market Status */}
           <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-zinc-900 text-white flex items-center justify-center font-bold shadow-sm ring-1 ring-zinc-800 flex-shrink-0">
-              <Briefcase className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
+            <div className="h-10 sm:h-11 flex items-center justify-center flex-shrink-0">
+              <AppLogo size="md" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 truncate">
